@@ -4,8 +4,8 @@ The Customer to Business (C2B) API, also known as the Register URL API, enables 
 
 The C2B API allows you to register callback URLs for payment notifications:
 
-**Validation URL**: Used when a merchant needs to validate payment details before accepting (e.g., verifying an account number).
-**Confirmation URL**: Receives payment notification after successful completion.
+- **Validation URL**: Used when a merchant needs to validate payment details before accepting (e.g., verifying an account number).
+- **Confirmation URL**: Receives payment notification after successful completion.
 
 > **Note:** C2B Transaction Validation is optional and must be activated by emailing [apisupport@safaricom.co.ke](mailto:apisupport@safaricom.co.ke) or [M-pesabusiness@safaricom.co.ke](mailto:M-pesabusiness@safaricom.co.ke).
 

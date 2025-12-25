@@ -56,7 +56,8 @@ Devs gather here! You will first generate an access token to authenticate you to
 
 ### Request Body
 
-`{
+```json
+{
     "Initiator": "apiop37",
     "SecurityCredential": "jUb+dOXJiBDui8FnruaFckZJQup3kmmCH5XJ4NY/Oo3KaUTmJbxUiVgzBjqdL533u5Q435MT2VJwr/ /1fuZvA===",
     "CommandID": "TransactionReversal",
@@ -68,7 +69,6 @@ Devs gather here! You will first generate an access token to authenticate you to
     "QueueTimeOutURL": "https://mydomain.com/reversal/queue",
     "Remarks": "Payment reversal"
 }
-`
 ```
 
 ### Request Parameter Definition

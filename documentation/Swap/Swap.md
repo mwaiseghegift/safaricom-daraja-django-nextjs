@@ -67,9 +67,9 @@ You will first generate an access token to authenticate you to make the API call
 
 ## Use Cases
 
-Due diligence for risky mobile and Internet banking transactions for bank/fintech customers
-Onboarding to Mobile banking service for new and old customers
-Cheque confirmations – OPS check if line was swapped before clearing a cheque.
+- Due diligence for risky mobile and Internet banking transactions for bank/fintech customers
+- Onboarding to Mobile banking service for new and old customers
+- Cheque confirmations – OPS check if line was swapped before clearing a cheque.
 
 **Request Body**
 

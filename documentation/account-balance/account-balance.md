@@ -5,8 +5,8 @@ The M-PESA Account Balance API by Safaricom enables organizations to programmati
 **Key Features:**
 
 - **Real-time Balance Inquiry:** Instantly retrieve your M-PESA account balance.
-**Secure Access:** Authentication and authorization ensure only permitted entities access the balance.
-**Automated Responses:** Receive automatic acknowledgments and responses to inquiries.
+- **Secure Access:** Authentication and authorization ensure only permitted entities access the balance.
+- **Automated Responses:** Receive automatic acknowledgments and responses to inquiries.
 
 ## How It Works
 
