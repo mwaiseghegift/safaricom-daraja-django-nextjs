@@ -1,4 +1,1 @@
-# safaricom-daraja-django-nextjs
-# safaricom-daraja-django-nextjs
-# mwaiseghegift-safaricom-daraja-django-nextjs
-# safaricom-daraja-django-nextjs
+# Consuming SAFARICOM Daraja API with Python
