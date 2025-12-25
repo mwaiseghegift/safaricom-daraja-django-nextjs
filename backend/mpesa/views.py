@@ -1,0 +1,583 @@
+"""
+Daraja API Views
+================
+
+Handles incoming callbacks from Safaricom and provides API endpoints
+for frontend consumption.
+
+Author: Backend Team
+Date: December 2025
+"""
+
+import logging
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from .models import Transaction, CallbackLog, C2BTransaction
+from .services import DarajaService
+
+logger = logging.getLogger('mpesa')
+
+
+# =====================================================
+# CALLBACK HANDLERS (Receive responses from Safaricom)
+# =====================================================
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def stk_push_callback(request):
+    """
+    Handle STK Push callback from Safaricom.
+    Called when customer completes/cancels payment.
+    """
+    try:
+        import json
+        data = json.loads(request.body.decode('utf-8'))
+        
+        # Log callback
+        CallbackLog.objects.create(
+            callback_type='STK_PUSH',
+            raw_payload=data,
+            status='PENDING'
+        )
+        
+        # Extract callback data
+        body = data.get('Body', {}).get('stkCallback', {})
+        result_code = body.get('ResultCode')
+        result_desc = body.get('ResultDesc')
+        merchant_request_id = body.get('MerchantRequestID')
+        checkout_request_id = body.get('CheckoutRequestID')
+        
+        logger.info(f"STK Push callback received: {checkout_request_id} - Code: {result_code}")
+        
+        # Find and update transaction
+        try:
+            transaction = Transaction.objects.get(checkout_request_id=checkout_request_id)
+            transaction.response_payload = data
+            
+            if result_code == 0:
+                # Success - extract metadata
+                callback_metadata = body.get('CallbackMetadata', {}).get('Item', [])
+                metadata = {item['Name']: item.get('Value') for item in callback_metadata}
+                
+                transaction.transaction_id = metadata.get('MpesaReceiptNumber', '')
+                transaction.mark_success()
+                logger.info(f"STK Push successful: {transaction.transaction_id}")
+                
+            else:
+                # Failed or cancelled
+                transaction.mark_failed(result_desc)
+                logger.warning(f"STK Push failed: {result_desc}")
+            
+            # Mark callback as processed
+            callback = CallbackLog.objects.filter(
+                callback_type='STK_PUSH',
+                raw_payload=data
+            ).first()
+            if callback:
+                callback.mark_processed()
+                
+        except Transaction.DoesNotExist:
+            logger.error(f"Transaction not found for CheckoutRequestID: {checkout_request_id}")
+        
+        # Always return success to Safaricom
+        return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+        
+    except Exception as e:
+        logger.error(f"Error processing STK Push callback: {str(e)}", exc_info=True)
+        return JsonResponse({"ResultCode": 1, "ResultDesc": "Failed"}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def b2c_callback(request):
+    """
+    Handle B2C payment result callback.
+    """
+    try:
+        import json
+        data = json.loads(request.body.decode('utf-8'))
+        
+        # Log callback
+        CallbackLog.objects.create(
+            callback_type='B2C',
+            raw_payload=data,
+            status='PENDING'
+        )
+        
+        # Extract result data
+        result = data.get('Result', {})
+        result_code = result.get('ResultCode')
+        result_desc = result.get('ResultDesc')
+        originator_conversation_id = result.get('OriginatorConversationID')
+        conversation_id = result.get('ConversationID')
+        transaction_id = result.get('TransactionID')
+        
+        logger.info(f"B2C callback received: {conversation_id} - Code: {result_code}")
+        
+        # Find and update transaction
+        try:
+            transaction = Transaction.objects.get(conversation_id=conversation_id)
+            transaction.response_payload = data
+            transaction.transaction_id = transaction_id
+            
+            if result_code == 0:
+                # Extract result parameters
+                result_params = result.get('ResultParameters', {}).get('ResultParameter', [])
+                params = {item['Key']: item.get('Value') for item in result_params}
+                
+                transaction.mark_success()
+                logger.info(f"B2C payment successful: {transaction_id}")
+            else:
+                transaction.mark_failed(result_desc)
+                logger.warning(f"B2C payment failed: {result_desc}")
+            
+            # Mark callback as processed
+            callback = CallbackLog.objects.filter(
+                callback_type='B2C',
+                raw_payload=data
+            ).first()
+            if callback:
+                callback.mark_processed()
+                
+        except Transaction.DoesNotExist:
+            logger.error(f"Transaction not found for ConversationID: {conversation_id}")
+        
+        return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+        
+    except Exception as e:
+        logger.error(f"Error processing B2C callback: {str(e)}", exc_info=True)
+        return JsonResponse({"ResultCode": 1, "ResultDesc": "Failed"}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def b2b_callback(request):
+    """
+    Handle B2B payment result callback.
+    """
+    try:
+        import json
+        data = json.loads(request.body.decode('utf-8'))
+        
+        # Log callback
+        CallbackLog.objects.create(
+            callback_type='B2B',
+            raw_payload=data,
+            status='PENDING'
+        )
+        
+        result = data.get('Result', {})
+        result_code = result.get('ResultCode')
+        result_desc = result.get('ResultDesc')
+        conversation_id = result.get('ConversationID')
+        transaction_id = result.get('TransactionID')
+        
+        logger.info(f"B2B callback received: {conversation_id} - Code: {result_code}")
+        
+        try:
+            transaction = Transaction.objects.get(conversation_id=conversation_id)
+            transaction.response_payload = data
+            transaction.transaction_id = transaction_id
+            
+            if result_code == 0:
+                transaction.mark_success()
+                logger.info(f"B2B payment successful: {transaction_id}")
+            else:
+                transaction.mark_failed(result_desc)
+                logger.warning(f"B2B payment failed: {result_desc}")
+            
+            callback = CallbackLog.objects.filter(
+                callback_type='B2B',
+                raw_payload=data
+            ).first()
+            if callback:
+                callback.mark_processed()
+                
+        except Transaction.DoesNotExist:
+            logger.error(f"Transaction not found for ConversationID: {conversation_id}")
+        
+        return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+        
+    except Exception as e:
+        logger.error(f"Error processing B2B callback: {str(e)}", exc_info=True)
+        return JsonResponse({"ResultCode": 1, "ResultDesc": "Failed"}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def c2b_validation(request):
+    """
+    C2B Validation endpoint.
+    Called by Safaricom before processing C2B payment.
+    Return 0 to accept, 1 to reject.
+    """
+    try:
+        import json
+        data = json.loads(request.body.decode('utf-8'))
+        
+        logger.info(f"C2B validation request: {data.get('TransID')}")
+        
+        # Log validation request
+        CallbackLog.objects.create(
+            callback_type='C2B_VALIDATION',
+            raw_payload=data,
+            status='PENDING'
+        )
+        
+        # Add your validation logic here
+        # For now, accept all transactions
+        
+        return JsonResponse({
+            "ResultCode": 0,
+            "ResultDesc": "Accepted"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in C2B validation: {str(e)}", exc_info=True)
+        return JsonResponse({
+            "ResultCode": 1,
+            "ResultDesc": "Rejected"
+        }, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def c2b_confirmation(request):
+    """
+    C2B Confirmation endpoint.
+    Called by Safaricom after successful C2B payment.
+    """
+    try:
+        import json
+        data = json.loads(request.body.decode('utf-8'))
+        
+        # Log confirmation
+        CallbackLog.objects.create(
+            callback_type='C2B_CONFIRMATION',
+            raw_payload=data,
+            status='PENDING'
+        )
+        
+        trans_id = data.get('TransID')
+        trans_time = data.get('TransTime')
+        trans_amount = data.get('TransAmount')
+        business_short_code = data.get('BusinessShortCode')
+        bill_ref_number = data.get('BillRefNumber', '')
+        invoice_number = data.get('InvoiceNumber', '')
+        org_account_balance = data.get('OrgAccountBalance', '')
+        third_party_trans_id = data.get('ThirdPartyTransID', '')
+        msisdn = data.get('MSISDN')
+        first_name = data.get('FirstName', '')
+        middle_name = data.get('MiddleName', '')
+        last_name = data.get('LastName', '')
+        
+        logger.info(f"C2B confirmation: {trans_id} - KES {trans_amount}")
+        
+        # Create or update transaction
+        transaction, created = Transaction.objects.get_or_create(
+            transaction_id=trans_id,
+            defaults={
+                'transaction_type': 'C2B',
+                'phone_number': msisdn,
+                'amount': trans_amount,
+                'account_reference': bill_ref_number,
+                'response_payload': data,
+                'status': 'SUCCESS'
+            }
+        )
+        
+        if not created:
+            transaction.response_payload = data
+            transaction.mark_success()
+        
+        # Create C2B details
+        C2BTransaction.objects.get_or_create(
+            transaction=transaction,
+            trans_id=trans_id,
+            defaults={
+                'trans_time': trans_time,
+                'trans_amount': trans_amount,
+                'business_short_code': business_short_code,
+                'bill_ref_number': bill_ref_number,
+                'invoice_number': invoice_number,
+                'msisdn': msisdn,
+                'first_name': first_name,
+                'middle_name': middle_name,
+                'last_name': last_name
+            }
+        )
+        
+        # Mark callback as processed
+        callback = CallbackLog.objects.filter(
+            callback_type='C2B_CONFIRMATION',
+            raw_payload=data
+        ).first()
+        if callback:
+            callback.mark_processed()
+        
+        logger.info(f"C2B transaction recorded: {trans_id}")
+        
+        return JsonResponse({
+            "ResultCode": 0,
+            "ResultDesc": "Accepted"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in C2B confirmation: {str(e)}", exc_info=True)
+        return JsonResponse({
+            "ResultCode": 1,
+            "ResultDesc": "Failed"
+        }, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def reversal_callback(request):
+    """
+    Handle transaction reversal result callback.
+    """
+    try:
+        import json
+        data = json.loads(request.body.decode('utf-8'))
+        
+        CallbackLog.objects.create(
+            callback_type='REVERSAL',
+            raw_payload=data,
+            status='PENDING'
+        )
+        
+        result = data.get('Result', {})
+        result_code = result.get('ResultCode')
+        result_desc = result.get('ResultDesc')
+        conversation_id = result.get('ConversationID')
+        transaction_id = result.get('TransactionID')
+        
+        logger.info(f"Reversal callback received: {conversation_id} - Code: {result_code}")
+        
+        try:
+            transaction = Transaction.objects.get(conversation_id=conversation_id)
+            transaction.response_payload = data
+            
+            if result_code == 0:
+                transaction.mark_success()
+                logger.info(f"Reversal successful: {transaction_id}")
+            else:
+                transaction.mark_failed(result_desc)
+                logger.warning(f"Reversal failed: {result_desc}")
+            
+            callback = CallbackLog.objects.filter(
+                callback_type='REVERSAL',
+                raw_payload=data
+            ).first()
+            if callback:
+                callback.mark_processed()
+                
+        except Transaction.DoesNotExist:
+            logger.error(f"Transaction not found for ConversationID: {conversation_id}")
+        
+        return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+        
+    except Exception as e:
+        logger.error(f"Error processing reversal callback: {str(e)}", exc_info=True)
+        return JsonResponse({"ResultCode": 1, "ResultDesc": "Failed"}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def transaction_status_callback(request):
+    """
+    Handle transaction status query result callback.
+    """
+    try:
+        import json
+        data = json.loads(request.body.decode('utf-8'))
+        
+        CallbackLog.objects.create(
+            callback_type='TRANSACTION_STATUS',
+            raw_payload=data,
+            status='PROCESSED'  # Status queries are informational
+        )
+        
+        result = data.get('Result', {})
+        logger.info(f"Transaction status callback: {result.get('ConversationID')}")
+        
+        return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+        
+    except Exception as e:
+        logger.error(f"Error processing transaction status callback: {str(e)}", exc_info=True)
+        return JsonResponse({"ResultCode": 1, "ResultDesc": "Failed"}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def account_balance_callback(request):
+    """
+    Handle account balance query result callback.
+    """
+    try:
+        import json
+        data = json.loads(request.body.decode('utf-8'))
+        
+        CallbackLog.objects.create(
+            callback_type='ACCOUNT_BALANCE',
+            raw_payload=data,
+            status='PROCESSED'
+        )
+        
+        result = data.get('Result', {})
+        logger.info(f"Account balance callback: {result.get('ConversationID')}")
+        
+        # You can extract and store balance information here
+        # result_params = result.get('ResultParameters', {}).get('ResultParameter', [])
+        
+        return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+        
+    except Exception as e:
+        logger.error(f"Error processing account balance callback: {str(e)}", exc_info=True)
+        return JsonResponse({"ResultCode": 1, "ResultDesc": "Failed"}, status=500)
+
+
+# =====================================================
+# API ENDPOINTS (For frontend consumption)
+# =====================================================
+
+@api_view(['POST'])
+@permission_classes([AllowAny])  # Change to IsAuthenticated in production
+def initiate_stk_push(request):
+    """
+    API endpoint to initiate STK Push from frontend.
+    
+    POST /api/mpesa/stk-push/
+    Body: {
+        "phone_number": "254712345678",
+        "amount": 100,
+        "account_reference": "OrderXYZ",
+        "transaction_desc": "Payment for Order XYZ"
+    }
+    """
+    try:
+        phone_number = request.data.get('phone_number')
+        amount = request.data.get('amount')
+        account_reference = request.data.get('account_reference')
+        transaction_desc = request.data.get('transaction_desc', 'Payment')
+        
+        # Validate required fields
+        if not all([phone_number, amount, account_reference]):
+            return Response(
+                {"error": "Missing required fields"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Initiate STK Push
+        service = DarajaService()
+        response = service.stk_push(
+            phone_number=phone_number,
+            amount=float(amount),
+            account_reference=account_reference,
+            transaction_desc=transaction_desc
+        )
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"STK Push API error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def query_stk_push(request):
+    """
+    Query STK Push status.
+    
+    POST /api/mpesa/stk-push/query/
+    Body: {"checkout_request_id": "ws_CO_XXX"}
+    """
+    try:
+        checkout_request_id = request.data.get('checkout_request_id')
+        
+        if not checkout_request_id:
+            return Response(
+                {"error": "checkout_request_id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        service = DarajaService()
+        response = service.stk_push_query(checkout_request_id)
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"STK Push query error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_transaction_status(request, transaction_id):
+    """
+    Get transaction status from database.
+    
+    GET /api/mpesa/transactions/{transaction_id}/
+    """
+    try:
+        transaction = Transaction.objects.get(transaction_id=transaction_id)
+        
+        data = {
+            "transaction_id": transaction.transaction_id,
+            "transaction_type": transaction.transaction_type,
+            "status": transaction.status,
+            "amount": str(transaction.amount),
+            "phone_number": transaction.phone_number,
+            "account_reference": transaction.account_reference,
+            "created_at": transaction.created_at.isoformat(),
+            "updated_at": transaction.updated_at.isoformat()
+        }
+        
+        return Response(data, status=status.HTTP_200_OK)
+        
+    except Transaction.DoesNotExist:
+        return Response(
+            {"error": "Transaction not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Get transaction error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_c2b(request):
+    """
+    Register C2B URLs.
+    
+    POST /api/mpesa/c2b/register/
+    """
+    try:
+        service = DarajaService()
+        response = service.register_c2b_urls()
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"C2B registration error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

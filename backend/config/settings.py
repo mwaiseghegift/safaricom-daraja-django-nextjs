@@ -11,21 +11,25 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1d(mo$-g#$shq%j4g&6sb8my2vzet97jmsn(ajtrfq@nhooyop'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-1d(mo$-g#$shq%j4g&6sb8my2vzet97jmsn(ajtrfq@nhooyop')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -37,10 +41,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Third party apps
+    'rest_framework',
+    'corsheaders',
+    # Local apps
+    'mpesa.apps.MpesaConfig',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -103,8 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'
 
 USE_I18N = True
 
@@ -114,4 +123,86 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+STATIC_URL = 'static/'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CORS Settings
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000').split(',')
+
+# REST Framework Settings
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+}
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'django.log',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': os.getenv('LOG_LEVEL', 'INFO'),
+    },
+    'loggers': {
+        'mpesa': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
+
+# Safaricom Daraja API Settings
+DARAJA = {
+    'ENVIRONMENT': os.getenv('DARAJA_ENVIRONMENT', 'sandbox'),
+    'CONSUMER_KEY': os.getenv('DARAJA_CONSUMER_KEY', ''),
+    'CONSUMER_SECRET': os.getenv('DARAJA_CONSUMER_SECRET', ''),
+    'SHORTCODE': os.getenv('DARAJA_SHORTCODE', ''),
+    'TILL_NUMBER': os.getenv('DARAJA_TILL_NUMBER', ''),
+    'PAYBILL': os.getenv('DARAJA_PAYBILL', ''),
+    'INITIATOR_NAME': os.getenv('DARAJA_INITIATOR_NAME', ''),
+    'INITIATOR_PASSWORD': os.getenv('DARAJA_INITIATOR_PASSWORD', ''),
+    'PASSKEY': os.getenv('DARAJA_PASSKEY', ''),
+    'CALLBACK_BASE_URL': os.getenv('DARAJA_CALLBACK_BASE_URL', 'http://localhost:8000'),
+    'STK_CALLBACK_URL': os.getenv('DARAJA_STK_CALLBACK_URL', ''),
+    'B2C_CALLBACK_URL': os.getenv('DARAJA_B2C_CALLBACK_URL', ''),
+    'B2B_CALLBACK_URL': os.getenv('DARAJA_B2B_CALLBACK_URL', ''),
+    'C2B_VALIDATION_URL': os.getenv('DARAJA_C2B_VALIDATION_URL', ''),
+    'C2B_CONFIRMATION_URL': os.getenv('DARAJA_C2B_CONFIRMATION_URL', ''),
+    'REVERSAL_CALLBACK_URL': os.getenv('DARAJA_REVERSAL_CALLBACK_URL', ''),
+    'TRANSACTION_STATUS_CALLBACK_URL': os.getenv('DARAJA_TRANSACTION_STATUS_CALLBACK_URL', ''),
+    'ACCOUNT_BALANCE_CALLBACK_URL': os.getenv('DARAJA_ACCOUNT_BALANCE_CALLBACK_URL', ''),
+    'TIMEOUT': int(os.getenv('DARAJA_TIMEOUT', '30')),
+    'TOKEN_CACHE_DURATION': int(os.getenv('DARAJA_TOKEN_CACHE_DURATION', '3500')),
+}
 STATIC_URL = 'static/'
