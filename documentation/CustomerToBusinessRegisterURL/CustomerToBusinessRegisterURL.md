@@ -134,107 +134,47 @@ Request Body
 
 Request Parameter Definition
 
-|  |
-| --- |
-
 **Name**
-
-|  |
-| --- |
 
 **Description**
 
-|  |
-| --- |
-
 **Type**
-
-|  |
-| --- |
 
 **Sample Values**
 
-|  |
-| --- |
-
 Validation URL
-
-|  |
-| --- |
 
 This is the URL that receives the validation request from the API upon payment submission. The validation URL is only called if the external validation on the registered shortcode is enabled.
                                     (By default External Validation is disabled).
 
-|  |
-| --- |
-
 URL
 
-|  |
-| --- |
-
 [https://ip](https://ip) or domain:port/path
-
-|  |
-| --- |
 
 ConfirmationURL
 
-|  |
-| --- |
-
 This is the URL that receives the confirmation request from API upon payment completion.
-
-|  |
-| --- |
 
 URL
 
-|  |
-| --- |
-
 [https://ip](https://ip) or domain:port/path
-
-|  |
-| --- |
 
 ResponseType
 
-|  |
-| --- |
-
 This parameter specifies what is to happen if for any reason the validation URL is not reachable. Note that, this is the default action value that determines what M-PESA will do in the scenario that your endpoint is unreachable or is unable to respond on time. Only two values are allowed: Completed or Cancelled. Completed means M-PESA will automatically complete your transaction, whereas Cancelled means M-PESA will automatically cancel the transaction, in the event M-PESA is unable to reach your Validation URL.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 - Canceled
 
                 -
                     Completed
 
-|  |
-| --- |
-
 Shortcode
-
-|  |
-| --- |
 
 Usually, a unique number is tagged to an M-PESA pay bill/till number of the organization.
 
-|  |
-| --- |
-
 Numeric
-
-|  |
-| --- |
 
 123456
 
@@ -248,83 +188,35 @@ Response Body
 
 Response Parameters Definition
 
-|  |
-| --- |
-
 **Name**
-
-|  |
-| --- |
 
 **Description**
 
-|  |
-| --- |
-
 **Type**
-
-|  |
-| --- |
 
 **Sample Values**
 
-|  |
-| --- |
-
 OriginatorCoversationID
-
-|  |
-| --- |
 
 This is a global unique identifier for the transaction request returned by the API proxy upon successful request submission.
 
-|  |
-| --- |
-
 Alpha-numeric
-
-|  |
-| --- |
 
 An alpha-numeric string of fewer than 20 characters
 
-|  |
-| --- |
-
 ResponseCode
-
-|  |
-| --- |
 
 It indicates whether Mobile Money accepts the request or not.
 
-|  |
-| --- |
-
 Alpha-numeric
-
-|  |
-| --- |
 
 0
 
-|  |
-| --- |
-
 ResponseDescription
-
-|  |
-| --- |
 
 This is the status of the request.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 Success
 
@@ -387,443 +279,182 @@ To reject a transaction, you send the same JSON above, but with the ResultCode s
 
 **Result Error Codes**
 
-|  |
-| --- |
-
 **ResultCode**
-
-|  |
-| --- |
 
 **ResultDesc**
 
-|  |
-| --- |
-
 C2B00011
-
-|  |
-| --- |
 
 Invalid MSISDN
 
-|  |
-| --- |
-
 C2B00012
-
-|  |
-| --- |
 
 Invalid Account Number
 
-|  |
-| --- |
-
 C2B00013
-
-|  |
-| --- |
 
 Invalid Amount
 
-|  |
-| --- |
-
 C2B00014
-
-|  |
-| --- |
 
 Invalid KYC Details
 
-|  |
-| --- |
-
 C2B00015
-
-|  |
-| --- |
 
 Invalid Shortcode
 
-|  |
-| --- |
-
 C2B00016
-
-|  |
-| --- |
 
 Other Error
 
 Results Parameter Definition
 
-|  |
-| --- |
-
 **Name**
-
-|  |
-| --- |
 
 **Description**
 
-|  |
-| --- |
-
 **Type**
-
-|  |
-| --- |
 
 **Sample Values**
 
-|  |
-| --- |
-
                     TransactionType
-
-|  |
-| --- |
 
 The transaction type specified during the payment request.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 Buy Goods or Pay Bill
 
-|  |
-| --- |
-
 TransID
-
-|  |
-| --- |
 
 This is the unique M-Pesa transaction ID for every payment request. This is sent to both the call-back messages and a confirmation SMS sent to the customer.
 
-|  |
-| --- |
-
 Alpha-numeric
-
-|  |
-| --- |
 
 LHG31AA5TX
 
-|  |
-| --- |
-
 TransTime
-
-|  |
-| --- |
 
 This is the Timestamp of the transaction, normally in the format of YEAR+MONTH+DATE+HOUR+MINUTE+SECOND (YYYYMMDDHHMMSS) Each part should be at least two digits apart from the year which takes four digits.
 
-|  |
-| --- |
-
                     Time
-
-|  |
-| --- |
 
 YYYYMMDDHHmmss e.g. 20170813154301
 
-|  |
-| --- |
-
 TransAmount
-
-|  |
-| --- |
 
 This is the amount transacted (normally a numeric value), money that the customer pays to the Shortcode. Only whole numbers are supported.
 
-|  |
-| --- |
-
 Numeric
-
-|  |
-| --- |
 
                     100
 
-|  |
-| --- |
-
 BusinessShortCode
-
-|  |
-| --- |
 
 This is the organization's shortcode (Paybill or Buygoods - a 5 to 6-digit account number) used to identify an organization and receive the transaction.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 Shortcode (5 to 6 digits) e.g. 654321
 
-|  |
-| --- |
-
 BillRefNumber
-
-|  |
-| --- |
 
 This is the account number for which the customer is making the payment. This is only applicable to Customer PayBill Transactions
 
-|  |
-| --- |
-
                     String
-
-|  |
-| --- |
 
 An alpha-numeric value of up to 20 characters.
 
-|  |
-| --- |
-
 OrgAccountBalance
-
-|  |
-| --- |
 
 The current utility account balance of the payment-receiving organization shortcode. For validation requests, this field is usually blank whereas, for the confirmation message, the value represents the new balance after the payment has been received.
 
-|  |
-| --- |
-
                     Decimal
-
-|  |
-| --- |
 
 30671
 
-|  |
-| --- |
-
 ThirdPartyTransID
-
-|  |
-| --- |
 
 This is a transaction ID that the partner can use to identify the transaction. When a validation request is sent, the partner can respond with ThirdPartyTransID and this will be sent back with the Confirmation notification
 
-|  |
-| --- |
-
                     String
-
-|  |
-| --- |
 
 1234567890
 
-|  |
-| --- |
-
 MSISDN
-
-|  |
-| --- |
 
 This is a masked mobile number of the customer making the payment.
 
-|  |
-| --- |
-
                     Numeric
-
-|  |
-| --- |
 
 25470****149
 
-|  |
-| --- |
-
 FirstName
-
-|  |
-| --- |
 
 The customer's first name is as per the M-Pesa register. This parameter can be empty.
 
-|  |
-| --- |
-
                     String
-
-|  |
-| --- |
 
 John
 
-|  |
-| --- |
-
 MiddleName
-
-|  |
-| --- |
 
 The customer's middle name is as per the M-Pesa register. This parameter can be empty.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
                 Doe
 
-|  |
-| --- |
-
 LastName
-
-|  |
-| --- |
 
 The customer's last name is as per the M-Pesa register. This parameter can be empty.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 **NB: Data minimization is a requirement from the data protection office not to share customers’ personal information without their consent.**
 
 **Validation Response - Expected from your validation URL.**
 
-|  |
-| --- |
-
 **Name**
-
-|  |
-| --- |
 
 **Description**
 
-|  |
-| --- |
-
 **Type**
-
-|  |
-| --- |
 
 ResultCode
 
-|  |
-| --- |
-
 A code indicating whether to complete the transaction. 0(Zero) always means complete. Other values mean canceling the transaction, which also determines the customer notification SMS type.
-
-|  |
-| --- |
 
 Alpha-numeric
 
-|  |
-| --- |
-
 ResultDesc
-
-|  |
-| --- |
 
 Short validation result description
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 ThirdPartyTransID
 
-|  |
-| --- |
-
 An optional value that can be used to identify the payment during a confirmation callback. If a value is set, it would be passed back in a confirmation callback.
-
-|  |
-| --- |
 
 String
 
 **Confirmation acknowledgment - Expected from your Confirmation URL.**
 
-|  |
-| --- |
-
 **Name**
-
-|  |
-| --- |
 
 **Description**
 
-|  |
-| --- |
-
 **Type**
-
-|  |
-| --- |
 
 ResultCode
 
-|  |
-| --- |
-
 A code indicating the receipt status of the confirmation callback. Always 0(zero).
-
-|  |
-| --- |
 
 Number
 
-|  |
-| --- |
-
 ResultDesc
 
-|  |
-| --- |
-
 A short confirmation receipt description. Usually “Success”.
-
-|  |
-| --- |
 
 String

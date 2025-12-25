@@ -50,233 +50,95 @@ Request Body
 
 Request Parameter Definition
 
-|  |
-| --- |
-
 **Name**
-
-|  |
-| --- |
 
 ** Description **
 
-|  |
-| --- |
-
 **Type**
-
-|  |
-| --- |
 
                     **Sample Values**
 
-|  |
-| --- |
-
 StandingOrderName
-
-|  |
-| --- |
 
 Name of standing order. Note that Standing Order (M-Pesa Ratiba) name must be unique for each customer. A customer can not create two Standing Orders with the same name.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "Phone Lipa Mdogo Mdogo"
 
-|  |
-| --- |
-
 StartDate
-
-|  |
-| --- |
 
 The date you wish for the standing order to start executing
 
-|  |
-| --- |
-
 Date(yyyymmdd)
-
-|  |
-| --- |
 
 "20240905"
 
-|  |
-| --- |
-
 EndDate
-
-|  |
-| --- |
 
 The date you wish for the standing order to stop executing
 
-|  |
-| --- |
-
 Date(yyyymmdd)
-
-|  |
-| --- |
 
 "20250905"
 
-|  |
-| --- |
-
 BusinessShortCode
-
-|  |
-| --- |
 
 The business short code to which the payment is to be sent
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
                     "1112223"
 
-|  |
-| --- |
-
 TransactionType
-
-|  |
-| --- |
 
 This is the transaction type that is used to identify the transaction when sending the request to M-PESA. Use "Standing Order Customer Pay Bill" for paybill or "Standing Order Customer Pay Marchant" for buy goods
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "Standing Order Customer Pay Bill"
 
-|  |
-| --- |
-
 Amount
-
-|  |
-| --- |
 
 This is the Amount transacted normally a numeric value. Money that the customer pays to the Shortcode. Only whole numbers are supported. This will be deducted from user’s mpesa balance each time the standing order executes.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "100"
 
-|  |
-| --- |
-
 PartyA
-
-|  |
-| --- |
 
 The phone number sending money.The parameter expected is a Valid Safaricom Mobile Number that is M-PESA registered in the format 2547XXXXXXXX
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "254712345678"
 
-|  |
-| --- |
-
 CallBackURL
-
-|  |
-| --- |
 
 A CallBack URL is a valid secure URL that is used to receive notifications from the Standing Order Solution. It is the endpoint to which the results will be sent.
 
-|  |
-| --- |
-
 String URL
-
-|  |
-| --- |
 
 "https://mydomain.com/callback"
 
-|  |
-| --- |
-
 AccountReference
-
-|  |
-| --- |
 
 Account Reference: This is a  parameter that is defined by your system as an Identifier of the transaction for the StandingOrderCustomerPayBill transaction type (Account number usually given when making paybill payment). Maximum of 12 characters.
 
-|  |
-| --- |
-
 Alpha numeric
-
-|  |
-| --- |
 
 "Test"
 
-|  |
-| --- |
-
 TransactionDesc
-
-|  |
-| --- |
 
 This is any additional information/comment that can be sent along with the request from your system. Maximum of 13 Characters
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "Electric Bike Repayment"
 
-|  |
-| --- |
-
 Frequency
-
-|  |
-| --- |
 
 This is a value representing the frequency at which you would like the transactions to happen. Valid values are:
 
@@ -289,33 +151,15 @@ This is a value representing the frequency at which you would like the transacti
                     7 - Half Year
                     8 - Yearly
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "2"
 
-|  |
-| --- |
-
 ReceiverPartyIdentifierType
-
-|  |
-| --- |
 
 The ReceiverPartyIdentifierType is the code our systems uses to identify the short code in the request body. The value is "2" for a Merchant till (Till Number), and "4" for a Business Short Code (PayBill)
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "4"
 
@@ -340,169 +184,73 @@ Response Body
 
 Response Parameter Definition
 
-|  |
-| --- |
-
 **Name**
-
-|  |
-| --- |
 
 **Description**
 
-|  |
-| --- |
-
 **Type**
-
-|  |
-| --- |
 
                     **Sample Values**
 
-|  |
-| --- |
-
 ResponseHeader
-
-|  |
-| --- |
 
 Contains MetaData of the response data
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 ""ResponseHeader":
                 {"responseRefID": "4dd9b5d9-d738-42ba-9326-2cc99e966000",
          "requestRefID": "c8c2bb31-3b3a-402e-84fc-21ef35161e48",
          "responseDescription": Request Processed successfully,     } , "
 
-|  |
-| --- |
-
 responseRefID
-
-|  |
-| --- |
 
 Contained in the response header - Is a  value, unique per request, used to track and trace a request and a response across the application systems.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "4dd9b5d9-d738-42ba-9326-2cc99e966000"
 
-|  |
-| --- |
-
 responseCode
-
-|  |
-| --- |
 
 This is http response code. This can be 200 for a succesflu request, 401 for an unathorized request and 500 for a system failiure.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "200"
 
-|  |
-| --- |
-
 ResultDesc
-
-|  |
-| --- |
 
 Contained in the response header - is a message giving a description of the status, progress, error, success or failiure of the request.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
                     "The service request is processed successfully."
 
-|  |
-| --- |
-
 ResponseBody
-
-|  |
-| --- |
 
 Encaplulates response body metadata
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
  "ResponseBody": {
          "responseDescription": Request accepted for processing,
          "responseCode": "200",
          }
 
-|  |
-| --- |
-
 responseDescription
-
-|  |
-| --- |
 
 This gives a descriptive message on the Async request sent for proccesing. This is in correspondance with the result code
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "Request accepted for processing"
 
-|  |
-| --- |
-
 responseCode
-
-|  |
-| --- |
 
 This is http response code. This can be "200" for a successful request, "401" for an unathorized request and "500" for a system failiure.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "200"
 
@@ -566,143 +314,59 @@ Example CallBack Response
 
 CallBack Response Parameter Definition
 
-|  |
-| --- |
-
 **Name**
-
-|  |
-| --- |
 
 ** Description **
 
-|  |
-| --- |
-
 **Type**
-
-|  |
-| --- |
 
                     **Sample Values**
 
-|  |
-| --- |
-
 ResponseHeader
-
-|  |
-| --- |
 
 Contains MetaData of the response data
 
-|  |
-| --- |
-
 JSON Object
-
-|  |
-| --- |
 
 "ResponseHeader": {"responseRefID": "4dd9b5d9-d738-42ba-9326-2cc99e966000", "requestRefID": "c8c2bb31-3b3a-402e-84fc-21ef35161e48", "responseDescription": "Request Processed successfully"}
 
-|  |
-| --- |
-
 responseRefID
-
-|  |
-| --- |
 
 Contained in the response header - Is a value, unique per request, used to track and trace a request and a response across the application systems.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "4dd9b5d9-d738-42ba-9326-2cc99e966000"
 
-|  |
-| --- |
-
 requestRefID
-
-|  |
-| --- |
 
 Contained in the response header - Is a Client generated value, unique per request, used to track and trace a request and a response across the application systems.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "c8c2bb31-3b3a-402e-84fc-21ef35161e48"
 
-|  |
-| --- |
-
 responseDescription
-
-|  |
-| --- |
 
 Contained in the response header - is a message giving a description of the status, progress, error, success or failure of the request.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
                     "Request Processed successfully"
 
-|  |
-| --- |
-
 ResponseBody
-
-|  |
-| --- |
 
 Encapsulates response body metadata
 
-|  |
-| --- |
-
 JSON Object
-
-|  |
-| --- |
 
 "ResponseBody": {"ResponseData": [{"Name": "TransactionID", "Value": "SC8F2IQMH5"}, {"Name": "ResultCode", "Value": "0"}]}
 
-|  |
-| --- |
-
 ResponseData
-
-|  |
-| --- |
 
 Contains Details of the response body in Key Value pairs. The values are TransactionID and ResultCode
 
-|  |
-| --- |
-
 JSON Object
-
-|  |
-| --- |
 
 "ResponseData": [{"Name": "TransactionID", "Value": "SC8F2IQMH5"}, {"Name": "ResultCode", "Value": "0"}]
 
@@ -754,142 +418,58 @@ Unsuccessful CallBack Response
 
 Unsuccessful CallBackResponse Parameter Definition
 
-|  |
-| --- |
-
 **Name**
-
-|  |
-| --- |
 
 ** Description **
 
-|  |
-| --- |
-
 **Type**
-
-|  |
-| --- |
 
                     **Sample Values**
 
-|  |
-| --- |
-
 ResponseHeader
-
-|  |
-| --- |
 
 Contains MetaData of the response data
 
-|  |
-| --- |
-
 JSON Object
-
-|  |
-| --- |
 
 "ResponseHeader": {"responseRefID": "4dd9b5d9-d738-42ba-9326-2cc99e966000", "requestRefID": "c8c2bb31-3b3a-402e-84fc-21ef35161e48", "responseDescription": "Request Processed successfully"}
 
-|  |
-| --- |
-
 responseRefID
-
-|  |
-| --- |
 
 Contained in the response header - Is a value, unique per request, used to track and trace a request and a response across the application systems.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "4dd9b5d9-d738-42ba-9326-2cc99e966000"
 
-|  |
-| --- |
-
 requestRefID
-
-|  |
-| --- |
 
 Contained in the response header - Is a Client generated value, unique per request, used to track and trace a request and a response across the application systems.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "c8c2bb31-3b3a-402e-84fc-21ef35161e48"
 
-|  |
-| --- |
-
 responseDescription
-
-|  |
-| --- |
 
 Contained in the response header - is a message giving a description of the status, progress, error, success or failure of the request.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
                     "An Error occured while processing your request"
 
-|  |
-| --- |
-
 ResponseBody
-
-|  |
-| --- |
 
 Encapsulates response body metadata
 
-|  |
-| --- |
-
 JSON Object
-
-|  |
-| --- |
 
 "ResponseBody": {"ResponseData": [{"Name": "TransactionID", "Value": "SC8F2IQMH5"}, {"Name": "ResultCode", "Value": "0"}]}
 
-|  |
-| --- |
-
 ResponseData
-
-|  |
-| --- |
 
 Contains Details of the response body in Key Value pairs. The values are TransactionID and ResultCode
 
-|  |
-| --- |
-
 JSON Object
-
-|  |
-| --- |
 
 "ResponseData": [{"Name": "TransactionID", "Value": "SC8F2IQMH5"}, {"Name": "ResultCode", "Value": "3001"}]

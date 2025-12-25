@@ -156,13 +156,7 @@ Generate an access token before making API calls. See the [Authorization API](ht
 | Charges paid
 | This account deducts charges incurred depending on the business tariff you are in.
 
-|  |
-| --- |
-
 | Organization Settlement
-
-|  |
-| --- |
 
 | After charges are deducted, money passes here to the working account.
 
@@ -385,24 +379,15 @@ After processing the reversal request on M-PESA, you get feedback via the Result
 | ResultParameters
 
 | It is used to carry specific parameters for the account balance query. For each account, the fields are presented in the following order and separated by vertical bars ( | ): Format: | <Available Balance> |
-| --- | --- | --- |
-| --- | --- | --- |
-|  |
-|  |
+| --- | --- | --- | --- | --- |
 
 | Key
 | It indicates a parameter name.
 | String
 
-|  |
-| --- |
-
 | Value
 | It indicates a parameter value.
 | String
-
-|  |
-| --- |
 
 | Working Account Available Funds
 | Mmf account available balance.
@@ -414,16 +399,12 @@ After processing the reversal request on M-PESA, you get feedback via the Result
 | Decimal
 
 | 700000.00 |
-| --- |
-| --- |
 
 | Working Account Reserved Funds
 | A charge paid account reserved balance.
 | Decimal
 
 | 0.00 |
-| --- |
-| --- |
 
 | Charges Paid Account Available Funds
 | A charge paid account available balance.
@@ -435,16 +416,12 @@ After processing the reversal request on M-PESA, you get feedback via the Result
 | Decimal
 
 | 1540.00 |
-| --- |
-| --- |
 
 | Charges Paid Account Reserved Funds
 | A charge paid account reserved balance.
 | Decimal
 
 | 0.00 |
-| --- |
-| --- |
 
 | Utility Account Available Funds
 | Utility account available balance.
@@ -456,22 +433,14 @@ After processing the reversal request on M-PESA, you get feedback via the Result
 | Decimal
 
 | 228037.00 |
-| --- |
-| --- |
 
 | Reference Item
 | It is used to carry some reference data that M-Pesa need not analyze but needs to record in the transaction log.
 | ParameterType[1..unbounded]
 
-|  |
-| --- |
-
 | ReferenceData
 | Utility account uncleared balance. It is used to carry some reference data that M-Pesa need not analyze but needs to record in the transactions log.
 | ReferenceData
-
-|  |
-| --- |
 
 ## Error Codes
 
@@ -498,9 +467,6 @@ After processing the reversal request on M-PESA, you get feedback via the Result
 | 19
 | Message Sequencing Failure
 | ApiResult
-
-|  |
-| --- |
 
 | 20
 | Unresolved Initiator
@@ -541,71 +507,40 @@ After processing the reversal request on M-PESA, you get feedback via the Result
 | Request was cached, waiting for resending
 | ApiResponse
 
-|  |
-| --- |
-
 | 100000001
 | The system is overload
 | ApiResponse
-
-|  |
-| --- |
 
 | 100000002
 | Throttling error
 | ApiResponse
 
-|  |
-| --- |
-
 | 100000004
 | Internal Server Error
 | ApiResponse
-
-|  |
-| --- |
 
 | 100000005
 | Invalid input value:%1; %1 indicates the parameter’s name.
 | ApiResponse
 
-|  |
-| --- |
-
 | 100000007
 | Service’s status is abnormal.
 | ApiResponse
-
-|  |
-| --- |
 
 | 100000009
 | API’s status is abnormal
 | ApiResponse
 
-|  |
-| --- |
-
 | 100000010
 | Insufficient permissions
 | ApiResponse
-
-|  |
-| --- |
 
 | 100000011
 | Exceed the limitation of request rate
 | ApiResponse
 
-|  |
-| --- |
-
 | 00.002.1001
 | Service is currently under maintenance. Please try again later
-
-|  |
-| --- |
-|  |
 
 ## Next steps
 

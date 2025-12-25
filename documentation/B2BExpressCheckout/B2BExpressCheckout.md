@@ -18,163 +18,67 @@ Request Body
 
 Request Parameter Definition
 
-|  |
-| --- |
-
 **Name**
-
-|  |
-| --- |
 
 **Description**
 
-|  |
-| --- |
-
 **Type**
-
-|  |
-| --- |
 
 **Sample Values**
 
-|  |
-| --- |
-
 primaryShortCode
-
-|  |
-| --- |
 
 This is the debit party, the merchant’s till (organization sending money) shortCode/tillNumber.
 
-|  |
-| --- |
-
 Number
 
-|  |
-| --- |
-
 000001
-
-|  |
-| --- |
 
 receiverShortCode
 
-|  |
-| --- |
-
 This is the credit party, the vendor(payBill Account) receiving the amount from the merchant.
 
-|  |
-| --- |
-
 Number
-
-|  |
-| --- |
 
 000001
 
-|  |
-| --- |
-
 amount
-
-|  |
-| --- |
 
 Amount to be sent to vendor.
 
-|  |
-| --- |
-
 Number
-
-|  |
-| --- |
 
 100
 
-|  |
-| --- |
-
 paymentRef
-
-|  |
-| --- |
 
 This is a reference to the payment being made. This will appear in the text for easy reference by the merchant.
 
-|  |
-| --- |
-
 Alphanumeric
-
-|  |
-| --- |
 
 paymentRef
 
-|  |
-| --- |
-
 callbackUrl
-
-|  |
-| --- |
 
 The endpoint from the vendor system that will be used to send back the confirmation response once the transaction has taken place and the vendor is credited.
 
-|  |
-| --- |
-
 URL
-
-|  |
-| --- |
 
 http://..../result
 
-|  |
-| --- |
-
 partnerName
-
-|  |
-| --- |
 
 This is the organization Friendly name used by the vendor as known by the Merchant.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 Vendor
 
-|  |
-| --- |
-
 RequestRefId
-
-|  |
-| --- |
 
 This is a random Unique Identifier sent by the vendor System. The value is what will be used to track the process across the different components. This will be generated at the Apigee level and the result returned in the acknowledgment.
 
-|  |
-| --- |
-
 AlphaNumeric
-
-|  |
-| --- |
 
 550e8400-e29b-41d4-a716-446655440000
 
@@ -191,164 +95,68 @@ Once the request is sent the vendor gets an acknowledgement of the sent request.
 
 Response Parameter Definition
 
-|  |
-| --- |
-
 **Name**
-
-|  |
-| --- |
 
 **Description**
 
-|  |
-| --- |
-
 **Type**
-
-|  |
-| --- |
 
                     **Sample Values**
 
-|  |
-| --- |
-
 resultCode
-
-|  |
-| --- |
 
 Shows if the push was successful(0) or if it failed(Customer Cancelled).
 
-|  |
-| --- |
-
 Number
-
-|  |
-| --- |
 
 4001,0
 
-|  |
-| --- |
-
 resultDescription
-
-|  |
-| --- |
 
 Describe why the push was not finalized to the payment level.
 
-|  |
-| --- |
-
 AlphaNumeric
-
-|  |
-| --- |
 
 "User cancelled transaction"
 "The service request is processed successfully."
 
-|  |
-| --- |
-
 amount
-
-|  |
-| --- |
 
 The amount the vendor initiated to the merchant for Payment.
 
-|  |
-| --- |
-
 Number
-
-|  |
-| --- |
 
 71
 
-|  |
-| --- |
-
 requestId
-
-|  |
-| --- |
 
 The unique identifier of the request sent by the vendor.
 
-|  |
-| --- |
-
 String
 
-|  |
-| --- |
-
 "404e1aec-19e0-4ce3-973d-bd92e94c8021"
-
-|  |
-| --- |
 
 resultDescription
 
-|  |
-| --- |
-
 Describe why the push was not finalized to the payment level.
 
-|  |
-| --- |
-
 AlphaNumeric
-
-|  |
-| --- |
 
 "404e1aec-19e0-4ce3-973d-bd92e94c8021"
 
-|  |
-| --- |
-
 status
-
-|  |
-| --- |
 
 Status of the Transaction(Success/Failed). Complements the resultCode.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 "SUCCESS"
 
-|  |
-| --- |
-
 transactionId
-
-|  |
-| --- |
 
 Mpesa Receipt No of the transaction. Only applicable if the transaction is successful.
 
-|  |
-| --- |
-
 AlphaNumeric
-
-|  |
-| --- |
 
 "RDQ01NFT1Q"
 
@@ -400,53 +208,23 @@ USSD Callback Response
 
 Failed Result Parameter Definition
 
-|  |
-| --- |
-
 **Name**
-
-|  |
-| --- |
 
 **Description**
 
-|  |
-| --- |
-
 **Type**
-
-|  |
-| --- |
 
 **Sample Values**
 
-|  |
-| --- |
-
 Result
-
-|  |
-| --- |
 
 The root parameter encloses the entire result message.
 
-|  |
-| --- |
-
 JSON Object
-
-|  |
-| --- |
 
 "Result":{ }
 
-|  |
-| --- |
-
 ConversationId
-
-|  |
-| --- |
 
 This is a global unique identifier for the transaction request returned by the M-Pesa upon successful request submission.
                  
@@ -455,179 +233,77 @@ This is a global unique identifier for the transaction request returned by the M
                  
                  
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 236543-276372-2
 
-|  |
-| --- |
-
 OriginatorConversationId
-
-|  |
-| --- |
 
 This is a global unique identifier for the transaction request returned by the API proxy upon successful request submission.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 AG_2376487236_126732989KJHJKH
 
  
 
-|  |
-| --- |
-
 ResultDesc
-
-|  |
-| --- |
 
 This is a message from the API that gives the status
                     of the request processing and usually maps to a specific result code value.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 The initiator information is invalid.
 
-|  |
-| --- |
-
 ResultType
-
-|  |
-| --- |
 
 This is a status code that indicates whether the
                     transaction was already sent to your listener. Usual value is 0.
 
-|  |
-| --- |
-
 Number
-
-|  |
-| --- |
 
 0
 
-|  |
-| --- |
-
 ResultCode
-
-|  |
-| --- |
 
 This is a numeric status code that indicates the
                     status of the transaction processing. 0 means success and any other code
                     means an error occurred or the transaction failed.
 
-|  |
-| --- |
-
 Number
-
-|  |
-| --- |
 
 2001
 
-|  |
-| --- |
-
 ResultParameters
-
-|  |
-| --- |
 
 This is a JSON object that holds more details for the transaction  in a key-value format.
 
-|  |
-| --- |
-
 JSON Object
-
-|  |
-| --- |
 
 ResultParameters:{"ResultParameter":{"Key":"BOCompletedTime","Value":20200120164825}}
 
-|  |
-| --- |
-
 TransactionID
-
-|  |
-| --- |
 
 Unique M-PESA transaction ID for the payment
                                     request. A generic value is passed for certain failure scenarios.
 
-|  |
-| --- |
-
 String
-
-|  |
-| --- |
 
 OAK0000000
 
-|  |
-| --- |
-
 ReferenceData
-
-|  |
-| --- |
 
 This JSON object holds more details for the transaction reference data.
 
-|  |
-| --- |
-
 JSON Object
-
-|  |
-| --- |
 
 "ReferenceData": {"ReferenceItem": []}
 
-|  |
-| --- |
-
 ReferenceItem
-
-|  |
-| --- |
 
 A JSON array within the that holds JSON Objects with
                     additional transaction details
-
-|  |
-| --- |
-
-|  |
-| --- |
 
 ReferenceItem": [{"Key": "BillReferenceNumber", "Value": "19008" }, {"Key": "", "Value": "" }]]
 
