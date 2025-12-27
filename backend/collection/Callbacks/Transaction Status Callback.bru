@@ -1,0 +1,97 @@
+meta {
+  name: Transaction Status Callback
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{api_base}}/callback/transaction-status/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "Result": {
+      "ResultType": 0,
+      "ResultCode": 0,
+      "ResultDesc": "The service request is processed successfully.",
+      "OriginatorConversationID": "AG_20241219_00005c8f2d9e0cf0e3e1",
+      "ConversationID": "AG_20241219_00004d5f9f8f7e5f3e2d",
+      "TransactionID": "PHG12345678",
+      "ResultParameters": {
+        "ResultParameter": [
+          {
+            "Key": "ReceiptNo",
+            "Value": "PHG12345678"
+          },
+          {
+            "Key": "Conversation ID",
+            "Value": "AG_20241219_00004d5f9f8f7e5f3e2d"
+          },
+          {
+            "Key": "FinalisedTime",
+            "Value": 20241219123456
+          },
+          {
+            "Key": "Amount",
+            "Value": 1000
+          },
+          {
+            "Key": "TransactionStatus",
+            "Value": "Completed"
+          },
+          {
+            "Key": "ReasonType",
+            "Value": "Payment"
+          },
+          {
+            "Key": "TransactionReason",
+            "Value": "Payment for goods"
+          },
+          {
+            "Key": "DebitPartyCharges",
+            "Value": ""
+          },
+          {
+            "Key": "DebitAccountType",
+            "Value": "Utility Account"
+          },
+          {
+            "Key": "InitiatedTime",
+            "Value": 20241219123400
+          },
+          {
+            "Key": "OriginatorConversationID",
+            "Value": "AG_20241219_00005c8f2d9e0cf0e3e1"
+          },
+          {
+            "Key": "CreditPartyName",
+            "Value": "254712345678 - John Doe"
+          },
+          {
+            "Key": "DebitPartyName",
+            "Value": "600000 - Test Org"
+          }
+        ]
+      }
+    }
+  }
+}
+
+docs {
+  # Transaction Status Callback
+  
+  Receives the result of a transaction status query.
+  
+  ## When Called
+  After querying the status of a specific transaction.
+  
+  ## Information Provided
+  - Transaction completion status
+  - Transaction timing details
+  - Amount and parties involved
+  - Transaction reason
+  
+  **Note**: This is informational - used for reconciliation and tracking.
+}

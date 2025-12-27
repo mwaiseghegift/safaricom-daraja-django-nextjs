@@ -1,0 +1,66 @@
+meta {
+  name: STK Push Callback
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{api_base}}/callback/stk/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "Body": {
+      "stkCallback": {
+        "MerchantRequestID": "29115-34620561-1",
+        "CheckoutRequestID": "ws_CO_191220241234567890",
+        "ResultCode": 0,
+        "ResultDesc": "The service request is processed successfully.",
+        "CallbackMetadata": {
+          "Item": [
+            {
+              "Name": "Amount",
+              "Value": 100.00
+            },
+            {
+              "Name": "MpesaReceiptNumber",
+              "Value": "PHG12345678"
+            },
+            {
+              "Name": "Balance"
+            },
+            {
+              "Name": "TransactionDate",
+              "Value": 20241219123456
+            },
+            {
+              "Name": "PhoneNumber",
+              "Value": 254712345678
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+docs {
+  # STK Push Callback
+  
+  This endpoint receives callbacks from Safaricom after STK Push completion.
+  
+  ## Callback Flow
+  1. Customer completes/cancels payment on phone
+  2. Safaricom sends callback to this endpoint
+  3. Transaction status is updated in database
+  
+  ## ResultCodes
+  - 0: Success
+  - 1032: Cancelled by user
+  - 1: Insufficient funds
+  - 2001: Wrong PIN
+  
+  **Note**: This is called by Safaricom servers, not your frontend.
+}

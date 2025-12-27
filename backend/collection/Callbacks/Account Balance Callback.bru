@@ -1,0 +1,55 @@
+meta {
+  name: Account Balance Callback
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{api_base}}/callback/account-balance/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "Result": {
+      "ResultType": 0,
+      "ResultCode": 0,
+      "ResultDesc": "The service request is processed successfully.",
+      "OriginatorConversationID": "AG_20241219_00005c8f2d9e0cf0e3e1",
+      "ConversationID": "AG_20241219_00004d5f9f8f7e5f3e2d",
+      "TransactionID": "PHG12345678",
+      "ResultParameters": {
+        "ResultParameter": [
+          {
+            "Key": "AccountBalance",
+            "Value": "Working Account|KES|500000.00|500000.00|0.00|0.00&Utility Account|KES|50000.00|50000.00|0.00|0.00&Charges Paid Account|KES|0.00|0.00|0.00|0.00&Organization Settlement Account|KES|0.00|0.00|0.00|0.00"
+          },
+          {
+            "Key": "BOCompletedTime",
+            "Value": 20241219123456
+          }
+        ]
+      }
+    }
+  }
+}
+
+docs {
+  # Account Balance Callback
+  
+  Receives the result of an account balance query.
+  
+  ## When Called
+  After requesting account balance information.
+  
+  ## Balance Information Includes
+  - Working Account balance
+  - Utility Account balance
+  - Charges Paid Account balance
+  - Organization Settlement Account balance
+  
+  Each shows: Available balance, Reserved funds, etc.
+  
+  **Note**: Used for reconciliation and monitoring account status.
+}

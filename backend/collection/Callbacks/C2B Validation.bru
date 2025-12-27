@@ -1,0 +1,47 @@
+meta {
+  name: C2B Validation
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{api_base}}/callback/c2b/validation/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "TransactionType": "Pay Bill",
+    "TransID": "PHG12345678",
+    "TransTime": "20241219123456",
+    "TransAmount": "1000.00",
+    "BusinessShortCode": "600000",
+    "BillRefNumber": "account123",
+    "InvoiceNumber": "",
+    "OrgAccountBalance": "50000.00",
+    "ThirdPartyTransID": "",
+    "MSISDN": "254712345678",
+    "FirstName": "John",
+    "MiddleName": "K",
+    "LastName": "Doe"
+  }
+}
+
+docs {
+  # C2B Validation
+  
+  Called by Safaricom BEFORE processing C2B payment to validate the transaction.
+  
+  ## Response Required
+  Return:
+  - `ResultCode: 0` to ACCEPT the transaction
+  - `ResultCode: 1` to REJECT the transaction
+  
+  ## Use Cases
+  - Validate account/bill reference number
+  - Check if amount meets minimum requirements
+  - Verify customer eligibility
+  
+  **Note**: Must respond quickly (within 30 seconds) or transaction will timeout.
+}

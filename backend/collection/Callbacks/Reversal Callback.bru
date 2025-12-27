@@ -1,0 +1,76 @@
+meta {
+  name: Reversal Callback
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{api_base}}/callback/reversal/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "Result": {
+      "ResultType": 0,
+      "ResultCode": 0,
+      "ResultDesc": "The service request is processed successfully.",
+      "OriginatorConversationID": "AG_20241219_00005c8f2d9e0cf0e3e1",
+      "ConversationID": "AG_20241219_00004d5f9f8f7e5f3e2d",
+      "TransactionID": "PHG12345678",
+      "ResultParameters": {
+        "ResultParameter": [
+          {
+            "Key": "DebitAccountBalance",
+            "Value": "{Amount={CurrencyCode=KES, MinimumAmount=495000.00, BasicAmount=495000.00}}"
+          },
+          {
+            "Key": "Amount",
+            "Value": 100
+          },
+          {
+            "Key": "TransCompletedTime",
+            "Value": 20241219123456
+          },
+          {
+            "Key": "OriginalTransactionID",
+            "Value": "PHG00000000"
+          },
+          {
+            "Key": "Charge",
+            "Value": 0
+          },
+          {
+            "Key": "CreditPartyPublicName",
+            "Value": "254712345678 - John Doe"
+          },
+          {
+            "Key": "DebitPartyPublicName",
+            "Value": "600000 - Test Org"
+          }
+        ]
+      }
+    }
+  }
+}
+
+docs {
+  # Reversal Callback
+  
+  Receives transaction reversal result callbacks.
+  
+  ## When Called
+  After a reversal request is processed (successful or failed).
+  
+  ## Use Cases
+  - Reverse mistaken payments
+  - Handle customer disputes
+  - Correct wrong amounts
+  
+  ## ResultCodes
+  - 0: Reversal successful
+  - Other codes indicate why reversal failed
+  
+  **Note**: Called by Safaricom servers after reversal processing.
+}

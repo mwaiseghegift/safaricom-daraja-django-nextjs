@@ -1,0 +1,81 @@
+meta {
+  name: B2C Callback
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{api_base}}/callback/b2c/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "Result": {
+      "ResultType": 0,
+      "ResultCode": 0,
+      "ResultDesc": "The service request is processed successfully.",
+      "OriginatorConversationID": "AG_20241219_00005c8f2d9e0cf0e3e1",
+      "ConversationID": "AG_20241219_00004d5f9f8f7e5f3e2d",
+      "TransactionID": "PHG12345678",
+      "ResultParameters": {
+        "ResultParameter": [
+          {
+            "Key": "TransactionAmount",
+            "Value": 500
+          },
+          {
+            "Key": "TransactionReceipt",
+            "Value": "PHG12345678"
+          },
+          {
+            "Key": "B2CRecipientIsRegisteredCustomer",
+            "Value": "Y"
+          },
+          {
+            "Key": "B2CChargesPaidAccountAvailableFunds",
+            "Value": -4900.00
+          },
+          {
+            "Key": "ReceiverPartyPublicName",
+            "Value": "254712345678 - John Doe"
+          },
+          {
+            "Key": "TransactionCompletedDateTime",
+            "Value": "19.12.2024 12:34:56"
+          },
+          {
+            "Key": "B2CUtilityAccountAvailableFunds",
+            "Value": 10000.00
+          },
+          {
+            "Key": "B2CWorkingAccountAvailableFunds",
+            "Value": 500000.00
+          }
+        ]
+      },
+      "ReferenceData": {
+        "ReferenceItem": {
+          "Key": "QueueTimeoutURL",
+          "Value": "https://internalsandbox.safaricom.co.ke/mpesa/b2cresults/v1/submit"
+        }
+      }
+    }
+  }
+}
+
+docs {
+  # B2C Callback
+  
+  Receives Business to Customer payment result callbacks.
+  
+  ## When Called
+  After B2C payment is processed (successful or failed).
+  
+  ## ResultCodes
+  - 0: Success
+  - Other codes indicate various failure reasons
+  
+  **Note**: Called by Safaricom servers after B2C payment processing.
+}
