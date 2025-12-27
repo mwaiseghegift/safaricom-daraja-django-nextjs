@@ -1,0 +1,33 @@
+meta {
+  name: Query STK Push Status
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{api_base}}/stk-push/query/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "checkout_request_id": "ws_CO_27122024123456789"
+  }
+}
+
+docs {
+  # Query STK Push Status
+  
+  Queries the status of an STK Push transaction.
+  
+  ## Request Body
+  - `checkout_request_id` (required): The CheckoutRequestID from initiate response
+  
+  ## Response
+  Returns current status:
+  - `ResultCode`: 0 = Success, 1032 = Cancelled, etc.
+  - `ResultDesc`: Human readable description
+  - `MerchantRequestID`: Original merchant request ID
+  - `CheckoutRequestID`: Checkout request ID
+}

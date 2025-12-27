@@ -1,0 +1,40 @@
+meta {
+  name: Initiate STK Push
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{api_base}}/stk-push/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "phone_number": "254712345678",
+    "amount": 100,
+    "account_reference": "OrderXYZ123",
+    "transaction_desc": "Payment for Order XYZ123"
+  }
+}
+
+docs {
+  # Initiate STK Push
+  
+  Initiates an STK Push (M-Pesa Express) payment request to the customer's phone.
+  
+  ## Request Body
+  - `phone_number` (required): Customer phone number in format 254XXXXXXXXX
+  - `amount` (required): Amount to charge (minimum 1)
+  - `account_reference` (required): Your reference/order ID (max 12 chars)
+  - `transaction_desc` (optional): Description of the transaction
+  
+  ## Response
+  Returns:
+  - `checkout_request_id`: Used to query transaction status
+  - `merchant_request_id`: Merchant request identifier
+  - `response_code`: 0 for success
+  - `response_description`: Response message
+  - `customer_message`: Message displayed to customer
+}

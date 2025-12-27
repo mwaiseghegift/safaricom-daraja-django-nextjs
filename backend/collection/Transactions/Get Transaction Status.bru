@@ -1,0 +1,35 @@
+meta {
+  name: Get Transaction Status
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{api_base}}/transactions/FT12345678/
+  body: none
+  auth: none
+}
+
+params:path {
+  transaction_id: FT12345678
+}
+
+docs {
+  # Get Transaction Status
+  
+  Retrieves transaction details from the local database.
+  
+  ## Path Parameter
+  - `transaction_id`: The M-Pesa transaction ID (receipt number)
+  
+  ## Response
+  Returns:
+  - `transaction_id`: M-Pesa receipt number
+  - `transaction_type`: Type of transaction (STK_PUSH, B2C, etc.)
+  - `status`: PENDING, SUCCESS, FAILED, CANCELLED, TIMEOUT
+  - `amount`: Transaction amount
+  - `phone_number`: Customer phone number
+  - `account_reference`: Reference used in transaction
+  - `created_at`: Timestamp when initiated
+  - `updated_at`: Last update timestamp
+}

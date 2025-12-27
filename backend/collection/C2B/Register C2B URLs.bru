@@ -1,0 +1,31 @@
+meta {
+  name: Register C2B URLs
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{api_base}}/c2b/register/
+  body: none
+  auth: none
+}
+
+docs {
+  # Register C2B URLs
+  
+  Registers validation and confirmation URLs for C2B (Customer to Business) transactions.
+  This should be called once to set up C2B on your shortcode.
+  
+  ## Request
+  No body required. URLs are configured in environment variables.
+  
+  ## Response
+  Returns:
+  - `OriginatorCoversationID`: Unique request ID
+  - `ResponseCode`: 0 for success
+  - `ResponseDescription`: Response message
+  
+  ## Note
+  - Requires DARAJA_C2B_VALIDATION_URL and DARAJA_C2B_CONFIRMATION_URL to be set
+  - Only needs to be called once or when URLs change
+}
