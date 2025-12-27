@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # Third party apps
     'rest_framework',
     'corsheaders',
+    'drf_spectacular',
     # Local apps
     'mpesa.apps.MpesaConfig',
 ]
@@ -146,6 +147,8 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
 }
 
 # Logging Configuration
@@ -206,3 +209,44 @@ DARAJA = {
     'TOKEN_CACHE_DURATION': int(os.getenv('DARAJA_TOKEN_CACHE_DURATION', '3500')),
 }
 STATIC_URL = 'static/'
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Safaricom Daraja Django API',
+    'DESCRIPTION': '''
+    Complete M-Pesa integration API for Django applications.
+    
+    This API provides endpoints for:
+    - STK Push (Lipa na M-Pesa Online) payments
+    - Transaction status queries
+    - C2B (Customer to Business) registration
+    - Callback handling for all M-Pesa operations
+    
+    ## Authentication
+    Currently using AllowAny permissions for development. 
+    In production, implement proper authentication.
+    
+    ## M-Pesa API Documentation
+    For more information about M-Pesa APIs, visit:
+    https://developer.safaricom.co.ke/
+    ''',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': r'/api/',
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+        'filter': True,
+    },
+    'TAGS': [
+        {'name': 'M-Pesa Payments', 'description': 'STK Push and payment operations'},
+        {'name': 'M-Pesa Transactions', 'description': 'Transaction status and history'},
+        {'name': 'M-Pesa Configuration', 'description': 'C2B URL registration and setup'},
+    ],
+    'CONTACT': {
+        'name': 'API Support',
+        'email': 'support@yourdomain.com',
+    },
+}

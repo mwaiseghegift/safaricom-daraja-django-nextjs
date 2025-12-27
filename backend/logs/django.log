@@ -1,0 +1,21 @@
+INFO 2025-12-27 23:58:49,215 autoreload Watching for file changes with StatReloader
+WARNING 2025-12-27 23:59:03,812 log Not Found: /
+WARNING 2025-12-27 23:59:03,917 log Not Found: /favicon.ico
+INFO 2025-12-28 00:20:44,354 autoreload D:\nextjs\next-16\safaricom-daraja-django-nextjs\backend\config\urls.py changed, reloading.
+INFO 2025-12-28 00:20:44,912 autoreload Watching for file changes with StatReloader
+WARNING 2025-12-28 00:27:32,053 log Not Found: /stk-push/
+INFO 2025-12-28 00:35:50,918 autoreload D:\nextjs\next-16\safaricom-daraja-django-nextjs\backend\config\urls.py changed, reloading.
+INFO 2025-12-28 00:35:51,529 autoreload Watching for file changes with StatReloader
+INFO 2025-12-28 00:37:55,295 autoreload D:\nextjs\next-16\safaricom-daraja-django-nextjs\backend\config\settings.py changed, reloading.
+INFO 2025-12-28 00:37:56,107 autoreload Watching for file changes with StatReloader
+INFO 2025-12-28 00:38:29,472 autoreload D:\nextjs\next-16\safaricom-daraja-django-nextjs\backend\config\settings.py changed, reloading.
+INFO 2025-12-28 00:38:29,892 autoreload Watching for file changes with StatReloader
+INFO 2025-12-28 00:38:54,183 autoreload D:\nextjs\next-16\safaricom-daraja-django-nextjs\backend\config\settings.py changed, reloading.
+INFO 2025-12-28 00:38:54,692 autoreload Watching for file changes with StatReloader
+INFO 2025-12-28 00:43:33,534 autoreload D:\nextjs\next-16\safaricom-daraja-django-nextjs\backend\config\settings.py changed, reloading.
+INFO 2025-12-28 01:05:01,005 autoreload Watching for file changes with StatReloader
+INFO 2025-12-28 01:05:51,900 autoreload Watching for file changes with StatReloader
+INFO 2025-12-28 01:06:11,708 autoreload D:\nextjs\next-16\safaricom-daraja-django-nextjs\backend\config\urls.py changed, reloading.
+INFO 2025-12-28 01:06:12,363 autoreload Watching for file changes with StatReloader
+WARNING 2025-12-28 01:06:54,660 log Not Found: /
+WARNING 2025-12-28 01:06:54,728 log Not Found: /favicon.ico

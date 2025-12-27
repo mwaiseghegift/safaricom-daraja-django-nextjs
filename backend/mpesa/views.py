@@ -18,8 +18,18 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
 from .models import Transaction, CallbackLog, C2BTransaction
 from .services import DarajaService
+from .serializers import (
+    STKPushRequestSerializer,
+    STKPushResponseSerializer,
+    STKPushQueryRequestSerializer,
+    STKPushQueryResponseSerializer,
+    TransactionSerializer,
+    C2BRegisterResponseSerializer,
+    ErrorResponseSerializer
+)
 
 logger = logging.getLogger('mpesa')
 
@@ -447,6 +457,39 @@ def account_balance_callback(request):
 # API ENDPOINTS (For frontend consumption)
 # =====================================================
 
+@extend_schema(
+    summary="Initiate STK Push Payment",
+    description="Initiates an M-Pesa STK Push (Lipa na M-Pesa Online) payment request. "
+                "Sends a payment prompt to the customer's phone.",
+    tags=["M-Pesa Payments"],
+    request=STKPushRequestSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=STKPushResponseSerializer,
+            description="STK Push initiated successfully",
+            examples=[
+                OpenApiExample(
+                    "Success Response",
+                    value={
+                        "merchant_request_id": "29115-34620561-1",
+                        "checkout_request_id": "ws_CO_191220191020363925",
+                        "response_code": "0",
+                        "response_description": "Success. Request accepted for processing",
+                        "customer_message": "Success. Request accepted for processing"
+                    }
+                )
+            ]
+        ),
+        400: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Bad request - missing or invalid parameters"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])  # Change to IsAuthenticated in production
 def initiate_stk_push(request):
@@ -493,6 +536,39 @@ def initiate_stk_push(request):
         )
 
 
+@extend_schema(
+    summary="Query STK Push Status",
+    description="Queries the status of a previously initiated STK Push payment request using the checkout request ID.",
+    tags=["M-Pesa Payments"],
+    request=STKPushQueryRequestSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=STKPushQueryResponseSerializer,
+            description="STK Push status retrieved successfully",
+            examples=[
+                OpenApiExample(
+                    "Successful Payment",
+                    value={
+                        "ResponseCode": "0",
+                        "ResponseDescription": "The service request has been accepted successfully",
+                        "MerchantRequestID": "29115-34620561-1",
+                        "CheckoutRequestID": "ws_CO_191220191020363925",
+                        "ResultCode": "0",
+                        "ResultDesc": "The service request is processed successfully."
+                    }
+                )
+            ]
+        ),
+        400: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Bad request - missing checkout_request_id"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def query_stk_push(request):
@@ -524,6 +600,40 @@ def query_stk_push(request):
         )
 
 
+@extend_schema(
+    summary="Get Transaction Status",
+    description="Retrieves the current status of a transaction from the database using the transaction ID.",
+    tags=["M-Pesa Transactions"],
+    responses={
+        200: OpenApiResponse(
+            response=TransactionSerializer,
+            description="Transaction found successfully",
+            examples=[
+                OpenApiExample(
+                    "Successful Transaction",
+                    value={
+                        "transaction_id": "PGH4M1JOK2",
+                        "transaction_type": "STK_PUSH",
+                        "status": "SUCCESS",
+                        "amount": "100.00",
+                        "phone_number": "254712345678",
+                        "account_reference": "OrderXYZ",
+                        "created_at": "2024-01-15T10:30:00Z",
+                        "updated_at": "2024-01-15T10:30:15Z"
+                    }
+                )
+            ]
+        ),
+        404: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Transaction not found"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_transaction_status(request, transaction_id):
@@ -561,6 +671,31 @@ def get_transaction_status(request, transaction_id):
         )
 
 
+@extend_schema(
+    summary="Register C2B URLs",
+    description="Registers the validation and confirmation URLs for Customer to Business (C2B) payments with Safaricom.",
+    tags=["M-Pesa Configuration"],
+    responses={
+        200: OpenApiResponse(
+            response=C2BRegisterResponseSerializer,
+            description="C2B URLs registered successfully",
+            examples=[
+                OpenApiExample(
+                    "Success Response",
+                    value={
+                        "OriginatorCoversationID": "AG_20191219_00005797af5d7d75f652",
+                        "ResponseCode": "0",
+                        "ResponseDescription": "Success"
+                    }
+                )
+            ]
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_c2b(request):
