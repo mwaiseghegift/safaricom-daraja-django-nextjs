@@ -3,14 +3,12 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import {
   Search,
-  Filter,
   Download,
   RefreshCw,
   Eye,
@@ -20,54 +18,57 @@ import {
 import { formatCurrency, formatDateTime, getTransactionTypeLabel, downloadCSV } from '@/lib/utils';
 import type { Transaction, TransactionStatus, TransactionType } from '@/lib/types';
 
+// Sample data - in production, this would come from API
+const SAMPLE_TRANSACTIONS: Transaction[] = [
+  {
+    transaction_id: 'RK8L9M2N3P',
+    transaction_type: 'STK_PUSH',
+    amount: 1500,
+    phone_number: '254712345678',
+    status: 'SUCCESS' as TransactionStatus,
+    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    account_reference: 'ORD-001',
+  },
+  {
+    transaction_id: 'RK8L9M2N3Q',
+    transaction_type: 'B2C',
+    amount: 5000,
+    phone_number: '254723456789',
+    status: 'PENDING' as TransactionStatus,
+    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    account_reference: 'SAL-045',
+  },
+  {
+    transaction_id: 'RK8L9M2N3R',
+    transaction_type: 'STK_PUSH',
+    amount: 850,
+    phone_number: '254734567890',
+    status: 'SUCCESS' as TransactionStatus,
+    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    account_reference: 'ORD-002',
+  },
+  {
+    transaction_id: 'RK8L9M2N3S',
+    transaction_type: 'B2B',
+    amount: 12000,
+    phone_number: '254700000001',
+    status: 'FAILED' as TransactionStatus,
+    created_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+    account_reference: 'INV-789',
+  },
+  {
+    transaction_id: 'RK8L9M2N3T',
+    transaction_type: 'C2B',
+    amount: 2500,
+    phone_number: '254745678901',
+    status: 'SUCCESS' as TransactionStatus,
+    created_at: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(),
+    account_reference: 'PAY-456',
+  },
+];
+
 export default function TransactionsPage() {
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      transaction_id: 'RK8L9M2N3P',
-      transaction_type: 'STK_PUSH',
-      amount: 1500,
-      phone_number: '254712345678',
-      status: 'SUCCESS' as TransactionStatus,
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      account_reference: 'ORD-001',
-    },
-    {
-      transaction_id: 'RK8L9M2N3Q',
-      transaction_type: 'B2C',
-      amount: 5000,
-      phone_number: '254723456789',
-      status: 'PENDING' as TransactionStatus,
-      created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-      account_reference: 'SAL-045',
-    },
-    {
-      transaction_id: 'RK8L9M2N3R',
-      transaction_type: 'STK_PUSH',
-      amount: 850,
-      phone_number: '254734567890',
-      status: 'SUCCESS' as TransactionStatus,
-      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      account_reference: 'ORD-002',
-    },
-    {
-      transaction_id: 'RK8L9M2N3S',
-      transaction_type: 'B2B',
-      amount: 12000,
-      phone_number: '254700000001',
-      status: 'FAILED' as TransactionStatus,
-      created_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-      account_reference: 'INV-789',
-    },
-    {
-      transaction_id: 'RK8L9M2N3T',
-      transaction_type: 'C2B',
-      amount: 2500,
-      phone_number: '254745678901',
-      status: 'SUCCESS' as TransactionStatus,
-      created_at: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(),
-      account_reference: 'PAY-456',
-    },
-  ]);
+  const [transactions] = useState<Transaction[]>(SAMPLE_TRANSACTIONS);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<TransactionStatus | 'ALL'>('ALL');

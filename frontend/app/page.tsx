@@ -3,8 +3,8 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import {
@@ -21,8 +21,48 @@ import Link from 'next/link';
 import { formatCurrency, formatDateTime, getTransactionTypeLabel } from '@/lib/utils';
 import type { Transaction, TransactionStatus } from '@/lib/types';
 
+// Sample data - in production, this would come from API
+const SAMPLE_TRANSACTIONS: Transaction[] = [
+  {
+    transaction_id: 'RK8L9M2N3P',
+    transaction_type: 'STK_PUSH',
+    amount: 1500,
+    phone_number: '254712345678',
+    status: 'SUCCESS' as TransactionStatus,
+    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    account_reference: 'ORD-001',
+  },
+  {
+    transaction_id: 'RK8L9M2N3Q',
+    transaction_type: 'B2C',
+    amount: 5000,
+    phone_number: '254723456789',
+    status: 'PENDING' as TransactionStatus,
+    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    account_reference: 'SAL-045',
+  },
+  {
+    transaction_id: 'RK8L9M2N3R',
+    transaction_type: 'STK_PUSH',
+    amount: 850,
+    phone_number: '254734567890',
+    status: 'SUCCESS' as TransactionStatus,
+    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    account_reference: 'ORD-002',
+  },
+  {
+    transaction_id: 'RK8L9M2N3S',
+    transaction_type: 'B2B',
+    amount: 12000,
+    phone_number: '254700000001',
+    status: 'FAILED' as TransactionStatus,
+    created_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+    account_reference: 'INV-789',
+  },
+];
+
 export default function DashboardPage() {
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     total: 156,
     successful: 142,
     pending: 8,
@@ -31,44 +71,7 @@ export default function DashboardPage() {
     totalAmount: 1245000,
   });
 
-  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([
-    {
-      transaction_id: 'RK8L9M2N3P',
-      transaction_type: 'STK_PUSH',
-      amount: 1500,
-      phone_number: '254712345678',
-      status: 'SUCCESS' as TransactionStatus,
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      account_reference: 'ORD-001',
-    },
-    {
-      transaction_id: 'RK8L9M2N3Q',
-      transaction_type: 'B2C',
-      amount: 5000,
-      phone_number: '254723456789',
-      status: 'PENDING' as TransactionStatus,
-      created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-      account_reference: 'SAL-045',
-    },
-    {
-      transaction_id: 'RK8L9M2N3R',
-      transaction_type: 'STK_PUSH',
-      amount: 850,
-      phone_number: '254734567890',
-      status: 'SUCCESS' as TransactionStatus,
-      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      account_reference: 'ORD-002',
-    },
-    {
-      transaction_id: 'RK8L9M2N3S',
-      transaction_type: 'B2B',
-      amount: 12000,
-      phone_number: '254700000001',
-      status: 'FAILED' as TransactionStatus,
-      created_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-      account_reference: 'INV-789',
-    },
-  ]);
+  const [recentTransactions] = useState<Transaction[]>(SAMPLE_TRANSACTIONS);
 
   return (
     <div className="space-y-8">
