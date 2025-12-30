@@ -3,10 +3,11 @@
  */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { SkeletonCard, SkeletonTable } from '@/components/ui/Skeleton';
 import {
   CheckCircle,
   Clock,
@@ -16,6 +17,7 @@ import {
   Smartphone,
   Send,
   ArrowRightLeft,
+  RefreshCw,
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency, formatDateTime, getTransactionTypeLabel } from '@/lib/utils';
@@ -62,7 +64,7 @@ const SAMPLE_TRANSACTIONS: Transaction[] = [
 ];
 
 export default function DashboardPage() {
-  const [stats] = useState({
+  const [stats, setStats] = useState({
     total: 156,
     successful: 142,
     pending: 8,
@@ -71,34 +73,89 @@ export default function DashboardPage() {
     totalAmount: 1245000,
   });
 
-  const [recentTransactions] = useState<Transaction[]>(SAMPLE_TRANSACTIONS);
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>(SAMPLE_TRANSACTIONS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+
+  // Simulate real-time updates with polling
+  useEffect(() => {
+    // Initial load
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    // Poll for updates every 10 seconds
+    const pollingInterval = setInterval(() => {
+      // In production, this would fetch from API
+      // For demo, we simulate a new transaction occasionally
+      if (Math.random() > 0.7) {
+        const newTransaction: Transaction = {
+          transaction_id: `RK${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+          transaction_type: 'STK_PUSH',
+          amount: Math.floor(Math.random() * 5000) + 100,
+          phone_number: `25471${Math.floor(Math.random() * 10000000)}`,
+          status: 'SUCCESS' as TransactionStatus,
+          created_at: new Date().toISOString(),
+          account_reference: `ORD-${Math.floor(Math.random() * 1000)}`,
+        };
+        
+        setRecentTransactions(prev => [newTransaction, ...prev.slice(0, 3)]);
+        setStats(prev => ({
+          ...prev,
+          total: prev.total + 1,
+          successful: prev.successful + 1,
+          totalAmount: prev.totalAmount + (newTransaction.amount || 0),
+        }));
+        setLastUpdate(new Date());
+      }
+    }, 10000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(pollingInterval);
+    };
+  }, []);
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Overview of your M-Pesa transactions and analytics
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Overview of your M-Pesa transactions and analytics
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <RefreshCw className="w-4 h-4" />
+          <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Transactions"
-          value={stats.total.toString()}
-          icon={<TrendingUp className="w-6 h-6" />}
-          color="blue"
-        />
-        <StatCard
-          title="Successful"
-          value={stats.successful.toString()}
-          icon={<CheckCircle className="w-6 h-6" />}
-          color="green"
-          subtitle={`${stats.successRate}% success rate`}
-        />
-        <StatCard
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="Total Transactions"
+            value={stats.total.toString()}
+            icon={<TrendingUp className="w-6 h-6" />}
+            color="blue"
+          />
+          <StatCard
+            title="Successful"
+            value={stats.successful.toString()}
+            icon={<CheckCircle className="w-6 h-6" />}
+            color="green"
+            subtitle={`${stats.successRate}% success rate`}
+          />
+          <StatCard
           title="Pending"
           value={stats.pending.toString()}
           icon={<Clock className="w-6 h-6" />}
@@ -110,7 +167,8 @@ export default function DashboardPage() {
           icon={<XCircle className="w-6 h-6" />}
           color="red"
         />
-      </div>
+        </div>
+      )}
 
       {/* Total Amount Card */}
       <Card>
@@ -169,63 +227,71 @@ export default function DashboardPage() {
             </Button>
           </Link>
         </div>
-        <Card>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Transaction ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Phone Number
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {recentTransactions.map((transaction) => (
-                    <tr
-                      key={transaction.transaction_id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                        {transaction.transaction_id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                        {getTransactionTypeLabel(transaction.transaction_type)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
-                        {formatCurrency(transaction.amount || 0)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                        {transaction.phone_number}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge variant={transaction.status}>{transaction.status}</Badge>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                        {formatDateTime(transaction.created_at || '')}
-                      </td>
+        {isLoading ? (
+          <Card>
+            <CardContent className="p-0">
+              <SkeletonTable rows={4} />
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Transaction ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Type
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Amount
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Phone Number
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Date
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {recentTransactions.map((transaction) => (
+                      <tr
+                        key={transaction.transaction_id}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                          {transaction.transaction_id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                          {getTransactionTypeLabel(transaction.transaction_type)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
+                          {formatCurrency(transaction.amount || 0)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                          {transaction.phone_number}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge variant={transaction.status}>{transaction.status}</Badge>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                          {formatDateTime(transaction.created_at || '')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
