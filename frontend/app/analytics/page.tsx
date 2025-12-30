@@ -82,6 +82,12 @@ const TRANSACTION_TYPE_OPTIONS = [
   { value: 'C2B', label: 'C2B' },
 ];
 
+// Helper function to format percentage for pie chart labels
+const formatPercentLabel = (name: string | undefined, percent?: number): string => {
+  const percentValue = ((percent || 0) * 100).toFixed(0);
+  return `${name || 'Unknown'} ${percentValue}%`;
+};
+
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState('week');
   const [transactionType, setTransactionType] = useState('all');
@@ -252,7 +258,7 @@ export default function AnalyticsPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => formatPercentLabel(name, percent)}
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="value"

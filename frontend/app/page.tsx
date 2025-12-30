@@ -77,6 +77,10 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
+  // Constants for real-time polling
+  const NEW_TRANSACTION_PROBABILITY = 0.7;
+  const POLLING_INTERVAL_MS = 10000; // 10 seconds
+
   // Simulate real-time updates with polling
   useEffect(() => {
     // Initial load
@@ -88,7 +92,7 @@ export default function DashboardPage() {
     const pollingInterval = setInterval(() => {
       // In production, this would fetch from API
       // For demo, we simulate a new transaction occasionally
-      if (Math.random() > 0.7) {
+      if (Math.random() > NEW_TRANSACTION_PROBABILITY) {
         const newTransaction: Transaction = {
           transaction_id: `RK${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
           transaction_type: 'STK_PUSH',
@@ -108,7 +112,7 @@ export default function DashboardPage() {
         }));
         setLastUpdate(new Date());
       }
-    }, 10000);
+    }, POLLING_INTERVAL_MS);
 
     return () => {
       clearTimeout(timer);

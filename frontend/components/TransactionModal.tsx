@@ -66,11 +66,20 @@ export function TransactionModal({ transaction, isOpen, onClose }: TransactionMo
       return;
     }
 
+    if (!transaction.transaction_id) {
+      addNotification({
+        type: 'error',
+        message: 'Invalid Transaction',
+        description: 'Transaction ID is missing',
+      });
+      return;
+    }
+
     setIsReversing(true);
 
     try {
       await apiClient.reverseTransaction({
-        transaction_id: transaction.transaction_id || '',
+        transaction_id: transaction.transaction_id,
         amount: parseFloat(reversalAmount),
         remarks: reversalRemarks,
       });

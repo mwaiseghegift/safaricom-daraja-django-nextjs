@@ -297,7 +297,7 @@ export default function BalancePage() {
               No balance data available
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-500">
-              Click &quot;Query Balance&quot; to fetch your current account balance
+              Click "Query Balance" to fetch your current account balance
             </p>
           </CardContent>
         </Card>
