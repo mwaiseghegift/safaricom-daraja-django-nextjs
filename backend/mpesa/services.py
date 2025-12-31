@@ -232,7 +232,11 @@ class DarajaService:
         callback_url = self.config.get('B2C_CALLBACK_URL') or \
                       f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/b2c/"
         
+        # Generate unique OriginatorConversationID
+        originator_conversation_id = f"B2C_{self.config['SHORTCODE']}_{self._generate_timestamp()}"
+        
         payload = {
+            "OriginatorConversationID": originator_conversation_id,
             "InitiatorName": self.config['INITIATOR_NAME'],
             "SecurityCredential": security_credential,
             "CommandID": command_id,
@@ -312,7 +316,11 @@ class DarajaService:
         callback_url = self.config.get('B2B_CALLBACK_URL') or \
                       f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/b2b/"
         
+        # Generate unique OriginatorConversationID
+        originator_conversation_id = f"B2B_{self.config['SHORTCODE']}_{self._generate_timestamp()}"
+        
         payload = {
+            "OriginatorConversationID": originator_conversation_id,
             "Initiator": self.config['INITIATOR_NAME'],
             "SecurityCredential": security_credential,
             "CommandID": command_id,
@@ -425,7 +433,11 @@ class DarajaService:
         callback_url = self.config.get('REVERSAL_CALLBACK_URL') or \
                       f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/reversal/"
         
+        # Generate unique OriginatorConversationID
+        originator_conversation_id = f"REV_{self.config['SHORTCODE']}_{self._generate_timestamp()}"
+        
         payload = {
+            "OriginatorConversationID": originator_conversation_id,
             "Initiator": self.config['INITIATOR_NAME'],
             "SecurityCredential": security_credential,
             "CommandID": "TransactionReversal",
@@ -506,7 +518,11 @@ class DarajaService:
         callback_url = self.config.get('TRANSACTION_STATUS_CALLBACK_URL') or \
                       f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/transaction-status/"
         
+        # Generate unique OriginatorConversationID
+        originator_conversation_id = f"STS_{self.config['SHORTCODE']}_{self._generate_timestamp()}"
+        
         payload = {
+            "OriginatorConversationID": originator_conversation_id,
             "Initiator": self.config['INITIATOR_NAME'],
             "SecurityCredential": security_credential,
             "CommandID": "TransactionStatusQuery",
@@ -577,4 +593,311 @@ class DarajaService:
         )
         
         logger.info(f"Account balance query initiated: {response.get('ConversationID')}")
+        return response
+    
+    # =====================================================
+    # DYNAMIC QR CODE GENERATION
+    # =====================================================
+    
+    def generate_qr_code(
+        self,
+        merchant_name: str,
+        ref_no: str,
+        amount: float,
+        trx_code: str,
+        cpi: str,
+        size: str = "300"
+    ) -> Dict[str, Any]:
+        """
+        Generate a dynamic M-PESA QR code.
+        
+        Args:
+            merchant_name: Name of the merchant
+            ref_no: Transaction reference
+            amount: Transaction amount
+            trx_code: Transaction type (BG, WA, PB, SM, SB)
+            cpi: Credit Party Identifier
+            size: QR code size in pixels
+            
+        Returns:
+            Dict with QR code data (base64 encoded image)
+        """
+        logger.info(f"Generating dynamic QR code for {merchant_name}")
+        
+        payload = {
+            "MerchantName": merchant_name,
+            "RefNo": ref_no,
+            "Amount": str(amount),
+            "TrxCode": trx_code,
+            "CPI": cpi,
+            "Size": size
+        }
+        
+        response = self.client.make_request(
+            method='POST',
+            endpoint='/mpesa/qrcode/v1/generate',
+            data=payload
+        )
+        
+        logger.info(f"QR code generated: {response.get('RequestID')}")
+        return response
+    
+    # =====================================================
+    # BUSINESS TO POCHI
+    # =====================================================
+    
+    def business_to_pochi(
+        self,
+        phone_number: str,
+        amount: float,
+        remarks: str = "Payment",
+        occasion: str = ""
+    ) -> Dict[str, Any]:
+        """
+        Send payment to customer's Pochi la Biashara (micro SME wallet).
+        
+        Args:
+            phone_number: Recipient phone number
+            amount: Amount to send
+            remarks: Payment remarks
+            occasion: Optional occasion
+            
+        Returns:
+            Dict with transaction details
+        """
+        logger.info(f"Initiating Business to Pochi: {phone_number} - KES {amount}")
+        
+        # Validate phone number
+        if not phone_number.startswith('254'):
+            phone_number = f"254{phone_number.lstrip('0')}"
+        
+        security_credential = self.client.encrypt_initiator_password()
+        
+        callback_url = self.config.get('BUSINESS_TO_POCHI_CALLBACK_URL') or \
+                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/business-to-pochi/"
+        
+        originator_conversation_id = f"{self.config['SHORTCODE']}_Pochi_{self._generate_timestamp()}"
+        
+        payload = {
+            "OriginatorConversationID": originator_conversation_id,
+            "InitiatorName": self.config['INITIATOR_NAME'],
+            "SecurityCredential": security_credential,
+            "CommandID": "BusinessPayToPochi",
+            "Amount": str(amount),
+            "PartyA": self.config['SHORTCODE'],
+            "PartyB": phone_number,
+            "Remarks": remarks,
+            "QueueTimeOutURL": callback_url,
+            "ResultURL": callback_url,
+            "Occassion": occasion
+        }
+        
+        response = self.client.make_request(
+            method='POST',
+            endpoint='/mpesa/b2pochi/v1/paymentrequest',
+            data=payload
+        )
+        
+        logger.info(f"Business to Pochi initiated: {response.get('ConversationID')}")
+        return response
+    
+    # =====================================================
+    # TAX REMITTANCE
+    # =====================================================
+    
+    def tax_remittance(
+        self,
+        amount: float,
+        account_reference: str,
+        receiver_party: str = "572572",
+        remarks: str = "Tax Payment"
+    ) -> Dict[str, Any]:
+        """
+        Remit tax to Kenya Revenue Authority (KRA).
+        
+        Args:
+            amount: Amount to remit
+            account_reference: PRN (Payment Registration Number)
+            receiver_party: KRA shortcode (default: 572572)
+            remarks: Payment remarks
+            
+        Returns:
+            Dict with transaction details
+        """
+        logger.info(f"Initiating tax remittance: KES {amount} - PRN: {account_reference}")
+        
+        security_credential = self.client.encrypt_initiator_password()
+        
+        callback_url = self.config.get('TAX_REMITTANCE_CALLBACK_URL') or \
+                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/tax-remittance/"
+        
+        payload = {
+            "Initiator": self.config['INITIATOR_NAME'],
+            "SecurityCredential": security_credential,
+            "CommandID": "PayTaxToKRA",
+            "SenderIdentifierType": "4",
+            "RecieverIdentifierType": "4",
+            "Amount": str(amount),
+            "PartyA": self.config['SHORTCODE'],
+            "PartyB": receiver_party,
+            "AccountReference": account_reference,
+            "Remarks": remarks,
+            "QueueTimeOutURL": callback_url,
+            "ResultURL": callback_url
+        }
+        
+        response = self.client.make_request(
+            method='POST',
+            endpoint='/mpesa/b2b/v1/remittax',
+            data=payload
+        )
+        
+        logger.info(f"Tax remittance initiated: {response.get('ConversationID')}")
+        return response
+    
+    # =====================================================
+    # M-PESA RATIBA (STANDING ORDERS)
+    # =====================================================
+    
+    def create_standing_order(
+        self,
+        standing_order_name: str,
+        start_date: str,
+        end_date: str,
+        phone_number: str,
+        amount: float,
+        account_reference: str,
+        transaction_desc: str = "Standing Order",
+        frequency: str = "4",
+        transaction_type: str = "Standing Order Customer Pay Bill"
+    ) -> Dict[str, Any]:
+        """
+        Create M-Pesa Ratiba standing order for recurring payments.
+        
+        Args:
+            standing_order_name: Name of standing order
+            start_date: Start date (YYYYMMDD)
+            end_date: End date (YYYYMMDD)
+            phone_number: Customer phone number
+            amount: Payment amount
+            account_reference: Account reference
+            transaction_desc: Transaction description
+            frequency: Payment frequency (1-6)
+            transaction_type: Type of transaction
+            
+        Returns:
+            Dict with standing order details
+        """
+        logger.info(f"Creating standing order: {standing_order_name} for {phone_number}")
+        
+        # Validate phone number
+        if not phone_number.startswith('254'):
+            phone_number = f"254{phone_number.lstrip('0')}"
+        
+        callback_url = self.config.get('RATIBA_CALLBACK_URL') or \
+                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/mpesa-ratiba/"
+        
+        payload = {
+            "StandingOrderName": standing_order_name,
+            "StartDate": start_date,
+            "EndDate": end_date,
+            "BusinessShortCode": self.config['SHORTCODE'],
+            "TransactionType": transaction_type,
+            "ReceiverPartyIdentifierType": "4",
+            "Amount": str(amount),
+            "PartyA": phone_number,
+            "CallBackURL": callback_url,
+            "AccountReference": account_reference,
+            "TransactionDesc": transaction_desc,
+            "Frequency": frequency
+        }
+        
+        response = self.client.make_request(
+            method='POST',
+            endpoint='/standingorder/v1/createStandingOrderExternal',
+            data=payload
+        )
+        
+        logger.info(f"Standing order created: {response.get('CheckoutRequestID')}")
+        return response
+    
+    # =====================================================
+    # PULL TRANSACTION
+    # =====================================================
+    
+    def register_pull_transaction(
+        self,
+        short_code: str,
+        nominated_number: str
+    ) -> Dict[str, Any]:
+        """
+        Register shortcode for pull transaction (one-time setup).
+        
+        Args:
+            short_code: Organization shortcode
+            nominated_number: Safaricom MSISDN associated with organization
+            
+        Returns:
+            Dict with registration details
+        """
+        logger.info(f"Registering pull transaction for shortcode: {short_code}")
+        
+        # Validate phone number
+        if not nominated_number.startswith('254'):
+            nominated_number = f"254{nominated_number.lstrip('0')}"
+        
+        callback_url = self.config.get('PULL_TRANSACTION_CALLBACK_URL') or \
+                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/pull-transaction/"
+        
+        payload = {
+            "ShortCode": short_code,
+            "RequestType": "Pull",
+            "NominatedNumber": nominated_number,
+            "CallBackURL": callback_url
+        }
+        
+        response = self.client.make_request(
+            method='POST',
+            endpoint='/pulltransactions/v1/register',
+            data=payload
+        )
+        
+        logger.info(f"Pull transaction registered: {response.get('ResponseRefID')}")
+        return response
+    
+    def query_pull_transactions(
+        self,
+        short_code: str,
+        start_date: str,
+        end_date: str,
+        offset_value: str = "0"
+    ) -> Dict[str, Any]:
+        """
+        Query C2B transactions for reconciliation (last 48 hours).
+        
+        Args:
+            short_code: Organization shortcode
+            start_date: Start date (YYYY-MM-DD HH:MM:SS)
+            end_date: End date (YYYY-MM-DD HH:MM:SS)
+            offset_value: Pagination offset
+            
+        Returns:
+            Dict with transaction list
+        """
+        logger.info(f"Querying pull transactions for {short_code}: {start_date} to {end_date}")
+        
+        payload = {
+            "ShortCode": short_code,
+            "StartDate": start_date,
+            "EndDate": end_date,
+            "OffSetValue": offset_value
+        }
+        
+        response = self.client.make_request(
+            method='POST',
+            endpoint='/pulltransactions/v1/query',
+            data=payload
+        )
+        
+        logger.info(f"Pull transactions retrieved: {len(response.get('transactions', []))} records")
         return response

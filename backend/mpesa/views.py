@@ -28,7 +28,31 @@ from .serializers import (
     STKPushQueryResponseSerializer,
     TransactionSerializer,
     C2BRegisterResponseSerializer,
-    ErrorResponseSerializer
+    B2CPaymentRequestSerializer,
+    B2CPaymentResponseSerializer,
+    B2BPaymentRequestSerializer,
+    B2BPaymentResponseSerializer,
+    ReversalRequestSerializer,
+    ReversalResponseSerializer,
+    TransactionStatusRequestSerializer,
+    TransactionStatusResponseSerializer,
+    AccountBalanceRequestSerializer,
+    AccountBalanceResponseSerializer,
+    ErrorResponseSerializer,
+    DynamicQRRequestSerializer,
+    DynamicQRResponseSerializer,
+    BusinessToPochiRequestSerializer,
+    BusinessToPochiResponseSerializer,
+    TaxRemittanceRequestSerializer,
+    TaxRemittanceResponseSerializer,
+    MpesaRatibaRequestSerializer,
+    MpesaRatibaResponseSerializer,
+    PullTransactionRegisterSerializer,
+    PullTransactionRegisterResponseSerializer,
+    PullTransactionQuerySerializer,
+    PullTransactionQueryResponseSerializer,
+    BillManagerPaymentSerializer,
+    BillManagerAcknowledgmentSerializer
 )
 
 logger = logging.getLogger('mpesa')
@@ -712,6 +736,909 @@ def register_c2b(request):
         
     except Exception as e:
         logger.error(f"C2B registration error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@extend_schema(
+    summary="Initiate B2C Payment",
+    description="Initiates a Business to Customer (B2C) payment. Sends money from business account to customer's M-Pesa account.",
+    tags=["M-Pesa Payments"],
+    request=B2CPaymentRequestSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=B2CPaymentResponseSerializer,
+            description="B2C payment initiated successfully",
+            examples=[
+                OpenApiExample(
+                    "Success Response",
+                    value={
+                        "ConversationID": "AG_20191219_00005797af5d7d75f652",
+                        "OriginatorConversationID": "16740-34861180-1",
+                        "ResponseCode": "0",
+                        "ResponseDescription": "Accept the service request successfully."
+                    }
+                )
+            ]
+        ),
+        400: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Bad request - missing or invalid parameters"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def initiate_b2c(request):
+    """
+    Initiate B2C payment.
+    
+    POST /api/mpesa/b2c/
+    Body: {
+        "phone_number": "254712345678",
+        "amount": 100,
+        "command_id": "BusinessPayment",
+        "remarks": "Salary payment",
+        "occasion": "Monthly salary"
+    }
+    """
+    try:
+        phone_number = request.data.get('phone_number')
+        amount = request.data.get('amount')
+        command_id = request.data.get('command_id', 'BusinessPayment')
+        remarks = request.data.get('remarks', 'Payment')
+        occasion = request.data.get('occasion', '')
+        
+        if not all([phone_number, amount]):
+            return Response(
+                {"error": "Missing required fields: phone_number, amount"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        service = DarajaService()
+        response = service.b2c_payment(
+            phone_number=phone_number,
+            amount=float(amount),
+            command_id=command_id,
+            remarks=remarks,
+            occasion=occasion
+        )
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"B2C payment error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@extend_schema(
+    summary="Initiate B2B Payment",
+    description="Initiates a Business to Business (B2B) payment. Sends money from one business account to another.",
+    tags=["M-Pesa Payments"],
+    request=B2BPaymentRequestSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=B2BPaymentResponseSerializer,
+            description="B2B payment initiated successfully",
+            examples=[
+                OpenApiExample(
+                    "Success Response",
+                    value={
+                        "ConversationID": "AG_20191219_00005797af5d7d75f652",
+                        "OriginatorConversationID": "16740-34861180-1",
+                        "ResponseCode": "0",
+                        "ResponseDescription": "Accept the service request successfully."
+                    }
+                )
+            ]
+        ),
+        400: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Bad request - missing or invalid parameters"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def initiate_b2b(request):
+    """
+    Initiate B2B payment.
+    
+    POST /api/mpesa/b2b/
+    Body: {
+        "receiver_party": "600000",
+        "receiver_identifier_type": "4",
+        "amount": 1000,
+        "account_reference": "INV-001",
+        "command_id": "BusinessPayBill",
+        "remarks": "Payment for invoice"
+    }
+    """
+    try:
+        receiver_party = request.data.get('receiver_party')
+        receiver_identifier_type = request.data.get('receiver_identifier_type', '4')
+        amount = request.data.get('amount')
+        account_reference = request.data.get('account_reference')
+        command_id = request.data.get('command_id', 'BusinessPayBill')
+        remarks = request.data.get('remarks', 'Payment')
+        
+        if not all([receiver_party, amount, account_reference]):
+            return Response(
+                {"error": "Missing required fields: receiver_party, amount, account_reference"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        service = DarajaService()
+        response = service.b2b_payment(
+            receiver_party=receiver_party,
+            receiver_identifier_type=receiver_identifier_type,
+            amount=float(amount),
+            account_reference=account_reference,
+            command_id=command_id,
+            remarks=remarks
+        )
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"B2B payment error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@extend_schema(
+    summary="Reverse Transaction",
+    description="Reverses a completed M-Pesa transaction. Used to refund money back to the customer.",
+    tags=["M-Pesa Operations"],
+    request=ReversalRequestSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=ReversalResponseSerializer,
+            description="Reversal initiated successfully",
+            examples=[
+                OpenApiExample(
+                    "Success Response",
+                    value={
+                        "ConversationID": "AG_20191219_00005797af5d7d75f652",
+                        "OriginatorConversationID": "16740-34861180-1",
+                        "ResponseCode": "0",
+                        "ResponseDescription": "Accept the service request successfully."
+                    }
+                )
+            ]
+        ),
+        400: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Bad request - missing or invalid parameters"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reverse_transaction(request):
+    """
+    Reverse a transaction.
+    
+    POST /api/mpesa/reversal/
+    Body: {
+        "transaction_id": "PGH4M1JOK2",
+        "amount": 100,
+        "remarks": "Refund for cancelled order",
+        "occasion": "Order cancellation"
+    }
+    """
+    try:
+        transaction_id = request.data.get('transaction_id')
+        amount = request.data.get('amount')
+        remarks = request.data.get('remarks', 'Reversal')
+        occasion = request.data.get('occasion', '')
+        
+        if not all([transaction_id, amount]):
+            return Response(
+                {"error": "Missing required fields: transaction_id, amount"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        service = DarajaService()
+        response = service.reverse_transaction(
+            transaction_id=transaction_id,
+            amount=float(amount),
+            remarks=remarks,
+            occasion=occasion
+        )
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Reversal error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@extend_schema(
+    summary="Query Transaction Status",
+    description="Queries the status of a transaction from Safaricom. Returns detailed information about the transaction.",
+    tags=["M-Pesa Operations"],
+    request=TransactionStatusRequestSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=TransactionStatusResponseSerializer,
+            description="Transaction status query initiated successfully",
+            examples=[
+                OpenApiExample(
+                    "Success Response",
+                    value={
+                        "ConversationID": "AG_20191219_00005797af5d7d75f652",
+                        "OriginatorConversationID": "16740-34861180-1",
+                        "ResponseCode": "0",
+                        "ResponseDescription": "Accept the service request successfully."
+                    }
+                )
+            ]
+        ),
+        400: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Bad request - missing transaction_id"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def query_transaction_status(request):
+    """
+    Query transaction status from Safaricom.
+    
+    POST /api/mpesa/transaction-status/
+    Body: {
+        "transaction_id": "PGH4M1JOK2",
+        "remarks": "Status check",
+        "occasion": "Verification"
+    }
+    """
+    try:
+        transaction_id = request.data.get('transaction_id')
+        remarks = request.data.get('remarks', 'Status Query')
+        occasion = request.data.get('occasion', '')
+        
+        if not transaction_id:
+            return Response(
+                {"error": "Missing required field: transaction_id"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        service = DarajaService()
+        response = service.transaction_status(
+            transaction_id=transaction_id,
+            remarks=remarks,
+            occasion=occasion
+        )
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Transaction status query error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@extend_schema(
+    summary="Query Account Balance",
+    description="Queries the account balance of the M-Pesa business shortcode. Returns current working and available balances.",
+    tags=["M-Pesa Operations"],
+    request=AccountBalanceRequestSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=AccountBalanceResponseSerializer,
+            description="Account balance query initiated successfully",
+            examples=[
+                OpenApiExample(
+                    "Success Response",
+                    value={
+                        "ConversationID": "AG_20191219_00005797af5d7d75f652",
+                        "OriginatorConversationID": "16740-34861180-1",
+                        "ResponseCode": "0",
+                        "ResponseDescription": "Accept the service request successfully."
+                    }
+                )
+            ]
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def query_account_balance(request):
+    """
+    Query account balance.
+    
+    POST /api/mpesa/account-balance/
+    Body: {
+        "remarks": "Balance inquiry"
+    }
+    """
+    try:
+        remarks = request.data.get('remarks', 'Balance Query')
+        
+        service = DarajaService()
+        response = service.account_balance(remarks=remarks)
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Account balance query error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+# =====================================================
+# DYNAMIC QR CODE GENERATION
+# =====================================================
+
+@extend_schema(
+    summary="Generate Dynamic QR Code",
+    description="Generates a dynamic M-PESA QR Code that enables customers to scan and pay using My Safaricom App or M-PESA app.",
+    tags=["M-Pesa Operations"],
+    request=DynamicQRRequestSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=DynamicQRResponseSerializer,
+            description="QR code generated successfully"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def generate_dynamic_qr(request):
+    """
+    Generate a dynamic QR code for M-Pesa payment.
+    
+    POST /api/mpesa/dynamic-qr/
+    Body: {
+        "merchant_name": "TEST SUPERMARKET",
+        "ref_no": "Invoice001",
+        "amount": 1000,
+        "trx_code": "BG",
+        "cpi": "174379",
+        "size": "300"
+    }
+    """
+    try:
+        serializer = DynamicQRRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        service = DarajaService()
+        response = service.generate_qr_code(
+            merchant_name=serializer.validated_data['merchant_name'],
+            ref_no=serializer.validated_data['ref_no'],
+            amount=serializer.validated_data['amount'],
+            trx_code=serializer.validated_data['trx_code'],
+            cpi=serializer.validated_data['cpi'],
+            size=serializer.validated_data.get('size', '300')
+        )
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Dynamic QR generation error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+# =====================================================
+# BUSINESS TO POCHI
+# =====================================================
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def business_to_pochi_callback(request):
+    """Handle Business to Pochi callback from Safaricom."""
+    try:
+        import json
+        data = json.loads(request.body.decode('utf-8'))
+        
+        CallbackLog.objects.create(
+            callback_type='BUSINESS_TO_POCHI',
+            raw_payload=data,
+            status='PENDING'
+        )
+        
+        logger.info(f"Business to Pochi callback received: {data}")
+        
+        # Mark callback as processed
+        callback = CallbackLog.objects.filter(
+            callback_type='BUSINESS_TO_POCHI',
+            raw_payload=data
+        ).first()
+        if callback:
+            callback.mark_processed()
+        
+        return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+        
+    except Exception as e:
+        logger.error(f"Business to Pochi callback error: {str(e)}", exc_info=True)
+        return JsonResponse({"ResultCode": 1, "ResultDesc": str(e)}, status=500)
+
+
+@extend_schema(
+    summary="Initiate Business to Pochi Payment",
+    description="Send money from business account to customer's Pochi la Biashara (micro SME wallet).",
+    tags=["M-Pesa Operations"],
+    request=BusinessToPochiRequestSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=BusinessToPochiResponseSerializer,
+            description="Payment initiated successfully"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def initiate_business_to_pochi(request):
+    """
+    Initiate Business to Pochi payment.
+    
+    POST /api/mpesa/business-to-pochi/
+    Body: {
+        "phone_number": "254708374149",
+        "amount": 100,
+        "remarks": "Payment",
+        "occasion": "Pochi Payment"
+    }
+    """
+    try:
+        serializer = BusinessToPochiRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        service = DarajaService()
+        response = service.business_to_pochi(
+            phone_number=serializer.validated_data['phone_number'],
+            amount=serializer.validated_data['amount'],
+            remarks=serializer.validated_data.get('remarks', 'Payment'),
+            occasion=serializer.validated_data.get('occasion', '')
+        )
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Business to Pochi error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+# =====================================================
+# TAX REMITTANCE
+# =====================================================
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def tax_remittance_callback(request):
+    """Handle Tax Remittance callback from Safaricom."""
+    try:
+        import json
+        data = json.loads(request.body.decode('utf-8'))
+        
+        CallbackLog.objects.create(
+            callback_type='TAX_REMITTANCE',
+            raw_payload=data,
+            status='PENDING'
+        )
+        
+        logger.info(f"Tax remittance callback received: {data}")
+        
+        callback = CallbackLog.objects.filter(
+            callback_type='TAX_REMITTANCE',
+            raw_payload=data
+        ).first()
+        if callback:
+            callback.mark_processed()
+        
+        return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+        
+    except Exception as e:
+        logger.error(f"Tax remittance callback error: {str(e)}", exc_info=True)
+        return JsonResponse({"ResultCode": 1, "ResultDesc": str(e)}, status=500)
+
+
+@extend_schema(
+    summary="Remit Tax to KRA",
+    description="Remit tax payment to Kenya Revenue Authority (KRA) via M-Pesa.",
+    tags=["M-Pesa Operations"],
+    request=TaxRemittanceRequestSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=TaxRemittanceResponseSerializer,
+            description="Tax payment initiated successfully"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def remit_tax(request):
+    """
+    Remit tax to KRA.
+    
+    POST /api/mpesa/tax-remittance/
+    Body: {
+        "amount": 5000,
+        "account_reference": "PRN123456",
+        "receiver_party": "572572",
+        "remarks": "Tax Payment"
+    }
+    """
+    try:
+        serializer = TaxRemittanceRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        service = DarajaService()
+        response = service.tax_remittance(
+            amount=serializer.validated_data['amount'],
+            account_reference=serializer.validated_data['account_reference'],
+            receiver_party=serializer.validated_data.get('receiver_party', '572572'),
+            remarks=serializer.validated_data.get('remarks', 'Tax Payment')
+        )
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Tax remittance error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+# =====================================================
+# M-PESA RATIBA (STANDING ORDERS)
+# =====================================================
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def mpesa_ratiba_callback(request):
+    """Handle M-Pesa Ratiba callback from Safaricom."""
+    try:
+        import json
+        data = json.loads(request.body.decode('utf-8'))
+        
+        CallbackLog.objects.create(
+            callback_type='MPESA_RATIBA',
+            raw_payload=data,
+            status='PENDING'
+        )
+        
+        logger.info(f"M-Pesa Ratiba callback received: {data}")
+        
+        callback = CallbackLog.objects.filter(
+            callback_type='MPESA_RATIBA',
+            raw_payload=data
+        ).first()
+        if callback:
+            callback.mark_processed()
+        
+        return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+        
+    except Exception as e:
+        logger.error(f"M-Pesa Ratiba callback error: {str(e)}", exc_info=True)
+        return JsonResponse({"ResultCode": 1, "ResultDesc": str(e)}, status=500)
+
+
+@extend_schema(
+    summary="Create M-Pesa Ratiba Standing Order",
+    description="Create a standing order for recurring payments using M-Pesa Ratiba.",
+    tags=["M-Pesa Operations"],
+    request=MpesaRatibaRequestSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=MpesaRatibaResponseSerializer,
+            description="Standing order created successfully"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_standing_order(request):
+    """
+    Create M-Pesa Ratiba standing order.
+    
+    POST /api/mpesa/standing-order/
+    Body: {
+        "standing_order_name": "Monthly Subscription",
+        "start_date": "20240101",
+        "end_date": "20241231",
+        "phone_number": "254708374149",
+        "amount": 1000,
+        "account_reference": "ACC001",
+        "transaction_desc": "Monthly payment",
+        "frequency": "4",
+        "transaction_type": "Standing Order Customer Pay Bill"
+    }
+    """
+    try:
+        serializer = MpesaRatibaRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        service = DarajaService()
+        response = service.create_standing_order(
+            standing_order_name=serializer.validated_data['standing_order_name'],
+            start_date=serializer.validated_data['start_date'],
+            end_date=serializer.validated_data['end_date'],
+            phone_number=serializer.validated_data['phone_number'],
+            amount=serializer.validated_data['amount'],
+            account_reference=serializer.validated_data['account_reference'],
+            transaction_desc=serializer.validated_data.get('transaction_desc', 'Standing Order'),
+            frequency=serializer.validated_data['frequency'],
+            transaction_type=serializer.validated_data.get('transaction_type', 'Standing Order Customer Pay Bill')
+        )
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Standing order error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+# =====================================================
+# PULL TRANSACTION
+# =====================================================
+
+@extend_schema(
+    summary="Register for Pull Transaction",
+    description="Register your shortcode to enable pulling C2B transactions for reconciliation.",
+    tags=["M-Pesa Operations"],
+    request=PullTransactionRegisterSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=PullTransactionRegisterResponseSerializer,
+            description="Shortcode registered successfully"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_pull_transaction(request):
+    """
+    Register for pull transaction.
+    
+    POST /api/mpesa/pull-transaction/register/
+    Body: {
+        "short_code": "600000",
+        "nominated_number": "254722000000"
+    }
+    """
+    try:
+        serializer = PullTransactionRegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        service = DarajaService()
+        response = service.register_pull_transaction(
+            short_code=serializer.validated_data['short_code'],
+            nominated_number=serializer.validated_data['nominated_number']
+        )
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Pull transaction registration error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@extend_schema(
+    summary="Query Pull Transactions",
+    description="Query C2B transactions within the last 48 hours for reconciliation.",
+    tags=["M-Pesa Operations"],
+    request=PullTransactionQuerySerializer,
+    responses={
+        200: OpenApiResponse(
+            response=PullTransactionQueryResponseSerializer,
+            description="Transactions retrieved successfully"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def query_pull_transactions(request):
+    """
+    Query pull transactions.
+    
+    POST /api/mpesa/pull-transaction/query/
+    Body: {
+        "short_code": "600000",
+        "start_date": "2020-08-04 8:36:00",
+        "end_date": "2020-08-16 10:10:00",
+        "offset_value": "0"
+    }
+    """
+    try:
+        serializer = PullTransactionQuerySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        service = DarajaService()
+        response = service.query_pull_transactions(
+            short_code=serializer.validated_data['short_code'],
+            start_date=serializer.validated_data['start_date'],
+            end_date=serializer.validated_data['end_date'],
+            offset_value=serializer.validated_data.get('offset_value', '0')
+        )
+        
+        return Response(response, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Pull transaction query error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+# =====================================================
+# BILL MANAGER
+# =====================================================
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def bill_manager_payment_callback(request):
+    """
+    Handle Bill Manager payment notification.
+    Bill Manager pushes payment details here for acknowledgment.
+    """
+    try:
+        import json
+        data = json.loads(request.body.decode('utf-8'))
+        
+        # Log the payment notification
+        CallbackLog.objects.create(
+            callback_type='BILL_MANAGER',
+            raw_payload=data,
+            status='PENDING'
+        )
+        
+        transaction_id = data.get('transactionId')
+        paid_amount = data.get('paidAmount')
+        msisdn = data.get('msisdn')
+        account_reference = data.get('accountReference')
+        short_code = data.get('shortCode')
+        
+        logger.info(f"Bill Manager payment received: {transaction_id} - Amount: {paid_amount}")
+        
+        # Create or update transaction record
+        Transaction.objects.create(
+            transaction_id=transaction_id,
+            transaction_type='BILL_MANAGER',
+            status='SUCCESS',
+            amount=paid_amount,
+            phone_number=msisdn,
+            account_reference=account_reference,
+            response_payload=data
+        )
+        
+        # Mark callback as processed
+        callback = CallbackLog.objects.filter(
+            callback_type='BILL_MANAGER',
+            raw_payload=data
+        ).first()
+        if callback:
+            callback.mark_processed()
+        
+        # Acknowledge receipt
+        return JsonResponse({
+            "status": "SUCCESS",
+            "message": "Payment acknowledged successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Bill Manager callback error: {str(e)}", exc_info=True)
+        return JsonResponse({
+            "status": "FAILED",
+            "message": str(e)
+        }, status=500)
+
+
+@extend_schema(
+    summary="Get Bill Manager Payments",
+    description="Retrieve payments received through Bill Manager integration.",
+    tags=["M-Pesa Operations"],
+    responses={
+        200: OpenApiResponse(
+            response=BillManagerPaymentSerializer(many=True),
+            description="Payments retrieved successfully"
+        )
+    }
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_bill_manager_payments(request):
+    """
+    Get Bill Manager payments.
+    
+    GET /api/mpesa/bill-manager/payments/
+    """
+    try:
+        # Get recent Bill Manager transactions
+        transactions = Transaction.objects.filter(
+            transaction_type='BILL_MANAGER'
+        ).order_by('-created_at')[:50]
+        
+        payments = []
+        for txn in transactions:
+            payload = txn.response_payload or {}
+            payments.append({
+                'transaction_id': txn.transaction_id,
+                'paid_amount': str(txn.amount),
+                'msisdn': txn.phone_number,
+                'date_created': txn.created_at.isoformat(),
+                'account_reference': txn.account_reference,
+                'short_code': payload.get('shortCode', '')
+            })
+        
+        return Response(payments, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Get Bill Manager payments error: {str(e)}", exc_info=True)
         return Response(
             {"error": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR

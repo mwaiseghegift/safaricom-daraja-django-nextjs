@@ -8,6 +8,7 @@ import type {
   STKPushRequest,
   STKPushResponse,
   STKPushQueryRequest,
+  STKPushQueryResponse,
   B2CPaymentRequest,
   B2BPaymentRequest,
   C2BRegistrationRequest,
@@ -84,8 +85,8 @@ class ApiClient {
     return response.data;
   }
 
-  async querySTKPush(data: STKPushQueryRequest): Promise<any> {
-    const response = await this.client.post('/api/mpesa/stk-push/query/', data);
+  async querySTKPush(data: STKPushQueryRequest): Promise<STKPushQueryResponse> {
+    const response = await this.client.post<STKPushQueryResponse>('/api/mpesa/stk-push/query/', data);
     return response.data;
   }
 

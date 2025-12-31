@@ -57,6 +57,15 @@ export interface STKPushQueryRequest {
   checkout_request_id: string;
 }
 
+export interface STKPushQueryResponse {
+  ResponseCode: string;
+  ResponseDescription: string;
+  MerchantRequestID: string;
+  CheckoutRequestID: string;
+  ResultCode: string;
+  ResultDesc: string;
+}
+
 export interface B2CPaymentRequest {
   phone_number: string;
   amount: number;
