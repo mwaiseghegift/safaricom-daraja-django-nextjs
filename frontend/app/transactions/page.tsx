@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { TransactionModal } from '@/components/TransactionModal';
 import {
   Search,
   Download,
@@ -75,6 +76,8 @@ export default function TransactionsPage() {
   const [typeFilter, setTypeFilter] = useState<TransactionType | 'ALL'>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -122,8 +125,22 @@ export default function TransactionsPage() {
     }, 1000);
   };
 
+  const handleViewTransaction = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Transaction Modal */}
+      <TransactionModal
+        transaction={selectedTransaction}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedTransaction(null);
+        }}
+      />
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Transactions</h1>
@@ -273,7 +290,11 @@ export default function TransactionsPage() {
                         {formatDateTime(transaction.created_at || '')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleViewTransaction(transaction)}
+                        >
                           <Eye className="w-4 h-4" />
                         </Button>
                       </td>
