@@ -18,6 +18,7 @@ import {
   X,
   Moon,
   Sun,
+  QrCode,
 } from 'lucide-react';
 import { useAppStore } from '@/store/app-store';
 import { useTheme } from '@/lib/theme-provider';
@@ -25,6 +26,7 @@ import { useTheme } from '@/lib/theme-provider';
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'STK Push', href: '/stk-push', icon: Smartphone },
+  { name: 'Dynamic QR', href: '/qr-code', icon: QrCode },
   { name: 'B2C Payments', href: '/b2c', icon: Send },
   { name: 'B2B Payments', href: '/b2b', icon: ArrowRightLeft },
   { name: 'C2B Management', href: '/c2b', icon: FileText },

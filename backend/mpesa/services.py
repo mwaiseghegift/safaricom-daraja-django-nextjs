@@ -627,7 +627,7 @@ class DarajaService:
         payload = {
             "MerchantName": merchant_name,
             "RefNo": ref_no,
-            "Amount": str(amount),
+            "Amount": int(amount),
             "TrxCode": trx_code,
             "CPI": cpi,
             "Size": size

@@ -15,6 +15,8 @@ import type {
   Transaction,
   TransactionFilters,
   ApiError,
+  DynamicQRRequest,
+  DynamicQRResponse,
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -145,6 +147,15 @@ class ApiClient {
     if (limit) params.append('limit', limit.toString());
     if (all) params.append('all', 'true');
     const response = await this.client.get(`/api/mpesa/account-balance/history/?${params.toString()}`);
+    return response.data;
+  }
+
+  // Dynamic QR APIs
+  async generateDynamicQR(data: DynamicQRRequest): Promise<DynamicQRResponse> {
+    const response = await this.client.post<DynamicQRResponse>(
+      '/api/mpesa/dynamic-qr/',
+      data
+    );
     return response.data;
   }
 

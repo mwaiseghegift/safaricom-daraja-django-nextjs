@@ -117,6 +117,22 @@ export interface RecentTransaction {
   created_at: string;
 }
 
+export interface DynamicQRRequest {
+  merchant_name: string;
+  ref_no: string;
+  amount: number;
+  trx_code: 'BG' | 'WA' | 'PB' | 'SM' | 'SB';
+  cpi: string;
+  size?: string;
+}
+
+export interface DynamicQRResponse {
+  ResponseCode: string;
+  RequestID: string;
+  ResponseDescription: string;
+  QRCode: string;
+}
+
 export interface ApiError {
   error: string;
   details?: string;
