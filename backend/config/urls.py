@@ -24,7 +24,7 @@ from drf_spectacular.views import (
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/mpesa/', include('mpesa.urls', namespace='mpesa')),
+    path('api/', include('mpesa.urls', namespace='mpesa')),
     
     # API Documentation URLs
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

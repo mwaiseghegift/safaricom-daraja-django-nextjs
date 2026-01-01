@@ -292,18 +292,18 @@ Safaricom sends callbacks to notify you of transaction results.
 
 ### Callback URLs
 
-All callbacks are under `/api/mpesa/callback/`:
+All callbacks are under `/api/callback/`:
 
 | Callback | URL | Description |
 |----------|-----|-------------|
-| STK Push | `/api/mpesa/callback/stk/` | Payment completion/cancellation |
-| B2C | `/api/mpesa/callback/b2c/` | B2C payment result |
-| B2B | `/api/mpesa/callback/b2b/` | B2B payment result |
-| C2B Validation | `/api/mpesa/callback/c2b/validation/` | Validate C2B before processing |
-| C2B Confirmation | `/api/mpesa/callback/c2b/confirmation/` | C2B payment confirmation |
-| Reversal | `/api/mpesa/callback/reversal/` | Reversal result |
-| Transaction Status | `/api/mpesa/callback/transaction-status/` | Status query result |
-| Account Balance | `/api/mpesa/callback/account-balance/` | Balance query result |
+| STK Push | `/api/callback/stk/` | Payment completion/cancellation |
+| B2C | `/api/callback/b2c/` | B2C payment result |
+| B2B | `/api/callback/b2b/` | B2B payment result |
+| C2B Validation | `/api/callback/c2b/validation/` | Validate C2B before processing |
+| C2B Confirmation | `/api/callback/c2b/confirmation/` | C2B payment confirmation |
+| Reversal | `/api/callback/reversal/` | Reversal result |
+| Transaction Status | `/api/callback/transaction-status/` | Status query result |
+| Account Balance | `/api/callback/account-balance/` | Balance query result |
 
 ### How Callbacks Work
 
@@ -316,7 +316,7 @@ All callbacks are under `/api/mpesa/callback/`:
 
 When a customer completes STK Push payment:
 
-1. Safaricom sends POST request to `/api/mpesa/callback/stk/`
+1. Safaricom sends POST request to `/api/callback/stk/`
 2. Backend updates transaction status to `SUCCESS` or `FAILED`
 3. M-Pesa receipt number is saved
 

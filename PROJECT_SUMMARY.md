@@ -43,14 +43,14 @@ Complete, production-ready implementation of Safaricom Daraja API integration us
 - `POST /api/mpesa/c2b/register/` - Register C2B URLs
 
 **For Callbacks (Safaricom):**
-- `POST /api/mpesa/callback/stk/` - STK Push result
-- `POST /api/mpesa/callback/b2c/` - B2C result
-- `POST /api/mpesa/callback/b2b/` - B2B result
-- `POST /api/mpesa/callback/c2b/validation/` - C2B validation
-- `POST /api/mpesa/callback/c2b/confirmation/` - C2B confirmation
-- `POST /api/mpesa/callback/reversal/` - Reversal result
-- `POST /api/mpesa/callback/transaction-status/` - Status query result
-- `POST /api/mpesa/callback/account-balance/` - Balance query result
+- `POST /api/callback/stk/` - STK Push result
+- `POST /api/callback/b2c/` - B2C result
+- `POST /api/callback/b2b/` - B2B result
+- `POST /api/callback/c2b/validation/` - C2B validation
+- `POST /api/callback/c2b/confirmation/` - C2B confirmation
+- `POST /api/callback/reversal/` - Reversal result
+- `POST /api/callback/transaction-status/` - Status query result
+- `POST /api/callback/account-balance/` - Balance query result
 
 #### Configuration
 - Environment variable management with `python-dotenv`

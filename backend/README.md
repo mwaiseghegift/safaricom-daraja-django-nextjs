@@ -142,14 +142,14 @@ Callbacks → Transaction Updates → Database
 
 | Endpoint | Description |
 |----------|-------------|
-| `/api/mpesa/callback/stk/` | STK Push result |
-| `/api/mpesa/callback/b2c/` | B2C result |
-| `/api/mpesa/callback/b2b/` | B2B result |
-| `/api/mpesa/callback/c2b/validation/` | C2B validation |
-| `/api/mpesa/callback/c2b/confirmation/` | C2B confirmation |
-| `/api/mpesa/callback/reversal/` | Reversal result |
-| `/api/mpesa/callback/transaction-status/` | Status query result |
-| `/api/mpesa/callback/account-balance/` | Balance query result |
+| `/api/callback/stk/` | STK Push result |
+| `/api/callback/b2c/` | B2C result |
+| `/api/callback/b2b/` | B2B result |
+| `/api/callback/c2b/validation/` | C2B validation |
+| `/api/callback/c2b/confirmation/` | C2B confirmation |
+| `/api/callback/reversal/` | Reversal result |
+| `/api/callback/transaction-status/` | Status query result |
+| `/api/callback/account-balance/` | Balance query result |
 
 ## Usage Examples
 

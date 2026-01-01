@@ -92,7 +92,7 @@ class DarajaService:
         
         # Prepare callback URL
         callback_url = self.config.get('STK_CALLBACK_URL') or \
-                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/stk/"
+                        f"{self.config['CALLBACK_BASE_URL']}/api/callback/stk/"
         
         # Build request payload
         payload = {
@@ -230,7 +230,7 @@ class DarajaService:
         security_credential = self.client.encrypt_initiator_password()
         
         callback_url = self.config.get('B2C_CALLBACK_URL') or \
-                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/b2c/"
+                      f"{self.config['CALLBACK_BASE_URL']}/api/callback/b2c/"
         
         # Generate unique OriginatorConversationID
         originator_conversation_id = f"B2C_{self.config['SHORTCODE']}_{self._generate_timestamp()}"
@@ -314,7 +314,7 @@ class DarajaService:
         security_credential = self.client.encrypt_initiator_password()
         
         callback_url = self.config.get('B2B_CALLBACK_URL') or \
-                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/b2b/"
+                      f"{self.config['CALLBACK_BASE_URL']}/api/callback/b2b/"
         
         # Generate unique OriginatorConversationID
         originator_conversation_id = f"B2B_{self.config['SHORTCODE']}_{self._generate_timestamp()}"
@@ -381,9 +381,9 @@ class DarajaService:
             shortcode = self.config['SHORTCODE']
         
         validation_url = self.config.get('C2B_VALIDATION_URL') or \
-                        f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/c2b/validation/"
+                        f"{self.config['CALLBACK_BASE_URL']}/api/callback/c2b/validation/"
         confirmation_url = self.config.get('C2B_CONFIRMATION_URL') or \
-                          f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/c2b/confirmation/"
+                          f"{self.config['CALLBACK_BASE_URL']}/api/callback/c2b/confirmation/"
         
         payload = {
             "ShortCode": shortcode,
@@ -431,7 +431,7 @@ class DarajaService:
         security_credential = self.client.encrypt_initiator_password()
         
         callback_url = self.config.get('REVERSAL_CALLBACK_URL') or \
-                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/reversal/"
+                      f"{self.config['CALLBACK_BASE_URL']}/api/callback/reversal/"
         
         # Generate unique OriginatorConversationID
         originator_conversation_id = f"REV_{self.config['SHORTCODE']}_{self._generate_timestamp()}"
@@ -516,7 +516,7 @@ class DarajaService:
         security_credential = self.client.encrypt_initiator_password()
         
         callback_url = self.config.get('TRANSACTION_STATUS_CALLBACK_URL') or \
-                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/transaction-status/"
+                      f"{self.config['CALLBACK_BASE_URL']}/api/callback/transaction-status/"
         
         # Generate unique OriginatorConversationID
         originator_conversation_id = f"STS_{self.config['SHORTCODE']}_{self._generate_timestamp()}"
@@ -573,7 +573,7 @@ class DarajaService:
         security_credential = self.client.encrypt_initiator_password()
         
         callback_url = self.config.get('ACCOUNT_BALANCE_CALLBACK_URL') or \
-                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/account-balance/"
+                      f"{self.config['CALLBACK_BASE_URL']}/api/callback/account-balance/"
         
         payload = {
             "Initiator": self.config['INITIATOR_NAME'],
@@ -674,7 +674,7 @@ class DarajaService:
         security_credential = self.client.encrypt_initiator_password()
         
         callback_url = self.config.get('BUSINESS_TO_POCHI_CALLBACK_URL') or \
-                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/business-to-pochi/"
+                      f"{self.config['CALLBACK_BASE_URL']}/api/callback/business-to-pochi/"
         
         originator_conversation_id = f"{self.config['SHORTCODE']}_Pochi_{self._generate_timestamp()}"
         
@@ -729,7 +729,7 @@ class DarajaService:
         security_credential = self.client.encrypt_initiator_password()
         
         callback_url = self.config.get('TAX_REMITTANCE_CALLBACK_URL') or \
-                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/tax-remittance/"
+                      f"{self.config['CALLBACK_BASE_URL']}/api/callback/tax-remittance/"
         
         payload = {
             "Initiator": self.config['INITIATOR_NAME'],
@@ -795,7 +795,7 @@ class DarajaService:
             phone_number = f"254{phone_number.lstrip('0')}"
         
         callback_url = self.config.get('RATIBA_CALLBACK_URL') or \
-                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/mpesa-ratiba/"
+                      f"{self.config['CALLBACK_BASE_URL']}/api/callback/mpesa-ratiba/"
         
         payload = {
             "StandingOrderName": standing_order_name,
@@ -847,7 +847,7 @@ class DarajaService:
             nominated_number = f"254{nominated_number.lstrip('0')}"
         
         callback_url = self.config.get('PULL_TRANSACTION_CALLBACK_URL') or \
-                      f"{self.config['CALLBACK_BASE_URL']}/api/mpesa/callback/pull-transaction/"
+                      f"{self.config['CALLBACK_BASE_URL']}/api/callback/pull-transaction/"
         
         payload = {
             "ShortCode": short_code,

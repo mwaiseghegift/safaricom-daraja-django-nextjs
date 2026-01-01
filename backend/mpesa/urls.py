@@ -56,42 +56,42 @@ urlpatterns = [
     # =====================================================
     
     # STK Push endpoints
-    path('stk-push/', views.initiate_stk_push, name='initiate-stk-push'),
-    path('stk-push/query/', views.query_stk_push, name='query-stk-push'),
+    path('mpesa/stk-push/', views.initiate_stk_push, name='initiate-stk-push'),
+    path('mpesa/stk-push/query/', views.query_stk_push, name='query-stk-push'),
     
     # B2C Payment endpoint
-    path('b2c/', views.initiate_b2c, name='initiate-b2c'),
+    path('mpesa/b2c/', views.initiate_b2c, name='initiate-b2c'),
     
     # B2B Payment endpoint
-    path('b2b/', views.initiate_b2b, name='initiate-b2b'),
+    path('mpesa/b2b/', views.initiate_b2b, name='initiate-b2b'),
     
     # Business to Pochi endpoint
-    path('business-to-pochi/', views.initiate_business_to_pochi, name='initiate-business-to-pochi'),
+    path('mpesa/business-to-pochi/', views.initiate_business_to_pochi, name='initiate-business-to-pochi'),
     
     # Tax Remittance endpoint
-    path('tax-remittance/', views.remit_tax, name='remit-tax'),
+    path('mpesa/tax-remittance/', views.remit_tax, name='remit-tax'),
     
     # M-Pesa Ratiba endpoint
-    path('standing-order/', views.create_standing_order, name='create-standing-order'),
+    path('mpesa/standing-order/', views.create_standing_order, name='create-standing-order'),
     
     # Dynamic QR endpoint
-    path('dynamic-qr/', views.generate_dynamic_qr, name='generate-dynamic-qr'),
+    path('mpesa/dynamic-qr/', views.generate_dynamic_qr, name='generate-dynamic-qr'),
     
     # Pull Transaction endpoints
-    path('pull-transaction/register/', views.register_pull_transaction, name='register-pull-transaction'),
-    path('pull-transaction/query/', views.query_pull_transactions, name='query-pull-transactions'),
+    path('mpesa/pull-transaction/register/', views.register_pull_transaction, name='register-pull-transaction'),
+    path('mpesa/pull-transaction/query/', views.query_pull_transactions, name='query-pull-transactions'),
     
     # Bill Manager endpoints
-    path('bill-manager/payments/', views.get_bill_manager_payments, name='get-bill-manager-payments'),
+    path('mpesa/bill-manager/payments/', views.get_bill_manager_payments, name='get-bill-manager-payments'),
     
     # Transaction operations
-    path('transactions/<str:transaction_id>/', views.get_transaction_status, name='get-transaction-status'),
-    path('transaction-status/', views.query_transaction_status, name='query-transaction-status'),
-    path('reversal/', views.reverse_transaction, name='reverse-transaction'),
+    path('mpesa/transactions/<str:transaction_id>/', views.get_transaction_status, name='get-transaction-status'),
+    path('mpesa/transaction-status/', views.query_transaction_status, name='query-transaction-status'),
+    path('mpesa/reversal/', views.reverse_transaction, name='reverse-transaction'),
     
     # Account operations
-    path('account-balance/', views.query_account_balance, name='query-account-balance'),
+    path('mpesa/account-balance/', views.query_account_balance, name='query-account-balance'),
     
     # C2B registration
-    path('c2b/register/', views.register_c2b, name='register-c2b'),
+    path('mpesa/c2b/register/', views.register_c2b, name='register-c2b'),
 ]

@@ -68,25 +68,25 @@ export default function SettingsPage() {
           <div>
             <label className="text-xs text-gray-600 dark:text-gray-400">STK Push Callback</label>
             <p className="text-sm font-mono text-gray-900 dark:text-white mt-1">
-              http://localhost:8000/api/mpesa/callback/stk/
+              http://localhost:8000/api/callback/stk/
             </p>
           </div>
           <div>
             <label className="text-xs text-gray-600 dark:text-gray-400">B2C Callback</label>
             <p className="text-sm font-mono text-gray-900 dark:text-white mt-1">
-              http://localhost:8000/api/mpesa/callback/b2c/
+              http://localhost:8000/api/callback/b2c/
             </p>
           </div>
           <div>
             <label className="text-xs text-gray-600 dark:text-gray-400">C2B Validation</label>
             <p className="text-sm font-mono text-gray-900 dark:text-white mt-1">
-              http://localhost:8000/api/mpesa/callback/c2b/validation/
+              http://localhost:8000/api/callback/c2b/validation/
             </p>
           </div>
           <div>
             <label className="text-xs text-gray-600 dark:text-gray-400">C2B Confirmation</label>
             <p className="text-sm font-mono text-gray-900 dark:text-white mt-1">
-              http://localhost:8000/api/mpesa/callback/c2b/confirmation/
+              http://localhost:8000/api/callback/c2b/confirmation/
             </p>
           </div>
         </CardContent>
