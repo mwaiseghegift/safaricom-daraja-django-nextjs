@@ -224,11 +224,33 @@ class AccountBalanceRequestSerializer(serializers.Serializer):
 
 
 class AccountBalanceResponseSerializer(serializers.Serializer):
-    """Response serializer for account balance"""
-    conversation_id = serializers.CharField(read_only=True)
-    originator_conversation_id = serializers.CharField(read_only=True)
-    response_code = serializers.CharField(read_only=True)
-    response_description = serializers.CharField(read_only=True)
+    """Response serializer for account balance query initiation"""
+    ConversationID = serializers.CharField(read_only=True)
+    OriginatorConversationID = serializers.CharField(read_only=True)
+    ResponseCode = serializers.CharField(read_only=True)
+    ResponseDescription = serializers.CharField(read_only=True)
+
+
+class AccountDetailSerializer(serializers.Serializer):
+    """Serializer for individual account balance details"""
+    available = serializers.DecimalField(max_digits=15, decimal_places=2)
+    uncleared = serializers.DecimalField(max_digits=15, decimal_places=2)
+    reserved = serializers.DecimalField(max_digits=15, decimal_places=2)
+
+
+class AccountBalanceDetailSerializer(serializers.Serializer):
+    """Serializer for detailed account balance information"""
+    conversation_id = serializers.CharField()
+    originator_conversation_id = serializers.CharField()
+    result_code = serializers.CharField()
+    result_desc = serializers.CharField()
+    working_account = AccountDetailSerializer()
+    charges_paid = AccountDetailSerializer()
+    utility_account = AccountDetailSerializer()
+    organization_settlement = serializers.DictField()
+    total_available = serializers.DecimalField(max_digits=15, decimal_places=2)
+    created_at = serializers.DateTimeField()
+    callback_received_at = serializers.DateTimeField(allow_null=True)
 
 
 # Error Serializers

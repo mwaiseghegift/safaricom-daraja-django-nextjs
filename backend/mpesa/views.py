@@ -19,7 +19,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
-from .models import Transaction, CallbackLog, C2BTransaction
+from .models import Transaction, CallbackLog, C2BTransaction, AccountBalance
 from .services import DarajaService
 from .serializers import (
     STKPushRequestSerializer,
@@ -38,6 +38,7 @@ from .serializers import (
     TransactionStatusResponseSerializer,
     AccountBalanceRequestSerializer,
     AccountBalanceResponseSerializer,
+    AccountBalanceDetailSerializer,
     ErrorResponseSerializer,
     DynamicQRRequestSerializer,
     DynamicQRResponseSerializer,
@@ -453,27 +454,130 @@ def transaction_status_callback(request):
 def account_balance_callback(request):
     """
     Handle account balance query result callback.
+    Parses and stores balance information from M-PESA.
     """
     try:
         import json
+        from django.utils import timezone
+        from decimal import Decimal
+        import re
+        
         data = json.loads(request.body.decode('utf-8'))
         
-        CallbackLog.objects.create(
+        # Log callback
+        callback_log = CallbackLog.objects.create(
             callback_type='ACCOUNT_BALANCE',
             raw_payload=data,
-            status='PROCESSED'
+            status='PENDING'
         )
         
         result = data.get('Result', {})
-        logger.info(f"Account balance callback: {result.get('ConversationID')}")
+        conversation_id = result.get('ConversationID', '')
+        originator_conversation_id = result.get('OriginatorConversationID', '')
+        result_code = str(result.get('ResultCode', ''))
+        result_desc = result.get('ResultDesc', '')
         
-        # You can extract and store balance information here
-        # result_params = result.get('ResultParameters', {}).get('ResultParameter', [])
+        logger.info(f"Account balance callback: {conversation_id}")
+        
+        # Initialize balance data
+        balance_data = {
+            'conversation_id': conversation_id,
+            'originator_conversation_id': originator_conversation_id,
+            'result_code': result_code,
+            'result_desc': result_desc,
+            'callback_received_at': timezone.now()
+        }
+        
+        # Parse ResultParameters if successful
+        if result_code == '0':
+            result_params = result.get('ResultParameters', {}).get('ResultParameter', [])
+            balance_data['raw_result_parameters'] = result_params
+            
+            # Helper function to parse balance strings
+            def parse_balance_string(value_str):
+                """
+                Parse balance string format: 'Account Name|Currency|Available|Uncleared|Reserved'
+                Example: 'Working Account|KES|700000.00|0.00|0.00'
+                """
+                if not value_str or not isinstance(value_str, str):
+                    return None
+                
+                parts = value_str.split('|')
+                if len(parts) >= 3:
+                    try:
+                        # Extract numeric values
+                        available = Decimal(parts[2].strip()) if len(parts) > 2 else Decimal('0')
+                        uncleared = Decimal(parts[3].strip()) if len(parts) > 3 else Decimal('0')
+                        reserved = Decimal(parts[4].strip()) if len(parts) > 4 else Decimal('0')
+                        return {'available': available, 'uncleared': uncleared, 'reserved': reserved}
+                    except (ValueError, IndexError) as e:
+                        logger.warning(f"Error parsing balance string '{value_str}': {e}")
+                return None
+            
+            # Parse each result parameter
+            for param in result_params:
+                key = param.get('Key', '')
+                value = param.get('Value', '')
+                
+                # Working Account (MMF Account)
+                if 'Working' in key and 'Available' in key:
+                    parsed = parse_balance_string(value)
+                    if parsed:
+                        balance_data['working_account_available'] = parsed['available']
+                        balance_data['working_account_uncleared'] = parsed['uncleared']
+                        balance_data['working_account_reserved'] = parsed['reserved']
+                
+                # Charges Paid Account
+                elif 'Charges Paid' in key and 'Available' in key:
+                    parsed = parse_balance_string(value)
+                    if parsed:
+                        balance_data['charges_paid_available'] = parsed['available']
+                        balance_data['charges_paid_uncleared'] = parsed['uncleared']
+                        balance_data['charges_paid_reserved'] = parsed['reserved']
+                
+                # Utility Account
+                elif 'Utility' in key and 'Available' in key:
+                    parsed = parse_balance_string(value)
+                    if parsed:
+                        balance_data['utility_account_available'] = parsed['available']
+                        balance_data['utility_account_uncleared'] = parsed['uncleared']
+                        balance_data['utility_account_reserved'] = parsed['reserved']
+                
+                # Organization Settlement Account
+                elif 'Organization Settlement' in key or 'Settlement' in key:
+                    try:
+                        # Settlement might have different format
+                        if '|' in str(value):
+                            parsed = parse_balance_string(value)
+                            if parsed:
+                                balance_data['organization_settlement_available'] = parsed['available']
+                        else:
+                            balance_data['organization_settlement_available'] = Decimal(str(value))
+                    except (ValueError, TypeError) as e:
+                        logger.warning(f"Error parsing settlement balance '{value}': {e}")
+        
+        # Create or update AccountBalance record
+        account_balance, created = AccountBalance.objects.update_or_create(
+            conversation_id=conversation_id,
+            defaults=balance_data
+        )
+        
+        # Mark callback as processed
+        callback_log.status = 'PROCESSED'
+        callback_log.processed_at = timezone.now()
+        callback_log.save()
+        
+        logger.info(f"Account balance saved: {account_balance.id} (Created: {created})")
+        logger.info(f"Total available: {account_balance.total_available}")
         
         return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
         
     except Exception as e:
         logger.error(f"Error processing account balance callback: {str(e)}", exc_info=True)
+        if 'callback_log' in locals():
+            callback_log.status = 'FAILED'
+            callback_log.processing_error = str(e)
+            callback_log.save()
         return JsonResponse({"ResultCode": 1, "ResultDesc": "Failed"}, status=500)
 
 
@@ -873,7 +977,7 @@ def initiate_b2b(request):
         amount = request.data.get('amount')
         account_reference = request.data.get('account_reference')
         command_id = request.data.get('command_id', 'BusinessPayBill')
-        remarks = request.data.get('remarks', 'Payment')
+        remarks = request.data.get('remarks', 'N/A')
         
         if not all([receiver_party, amount, account_reference]):
             return Response(
@@ -883,8 +987,7 @@ def initiate_b2b(request):
         
         service = DarajaService()
         response = service.b2b_payment(
-            receiver_party=receiver_party,
-            receiver_identifier_type=receiver_identifier_type,
+            receiver_shortcode=receiver_party,
             amount=float(amount),
             account_reference=account_reference,
             command_id=command_id,
@@ -1096,6 +1199,129 @@ def query_account_balance(request):
         
     except Exception as e:
         logger.error(f"Account balance query error: {str(e)}", exc_info=True)
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@extend_schema(
+    summary="Get Account Balance History",
+    description="Retrieves stored account balance query results. Returns the most recent balance by default or all historical records.",
+    tags=["M-Pesa Operations"],
+    responses={
+        200: OpenApiResponse(
+            response=AccountBalanceDetailSerializer(many=True),
+            description="Account balance history retrieved successfully",
+            examples=[
+                OpenApiExample(
+                    "Success Response",
+                    value=[{
+                        "conversation_id": "AG_20191219_00005797af5d7d75f652",
+                        "originator_conversation_id": "16740-34861180-1",
+                        "result_code": "0",
+                        "result_desc": "The service request is processed successfully.",
+                        "working_account": {
+                            "available": 700000.00,
+                            "uncleared": 0.00,
+                            "reserved": 0.00
+                        },
+                        "charges_paid": {
+                            "available": -1540.00,
+                            "uncleared": 1540.00,
+                            "reserved": 0.00
+                        },
+                        "utility_account": {
+                            "available": 228037.00,
+                            "uncleared": 228037.00,
+                            "reserved": 0.00
+                        },
+                        "organization_settlement": {
+                            "available": 0.00
+                        },
+                        "total_available": 926497.00,
+                        "created_at": "2024-01-01T10:00:00Z",
+                        "callback_received_at": "2024-01-01T10:00:05Z"
+                    }]
+                )
+            ]
+        ),
+        404: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="No balance records found"
+        ),
+        500: OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description="Internal server error"
+        )
+    }
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_account_balance_history(request):
+    """
+    Get account balance history.
+    
+    GET /api/mpesa/account-balance/history/?limit=10
+    
+    Query Parameters:
+        limit (int): Number of records to return (default: 1 for latest only)
+        all (bool): Return all records if set to true
+    """
+    try:
+        # Check if user wants all records
+        show_all = request.query_params.get('all', 'false').lower() == 'true'
+        limit = int(request.query_params.get('limit', '1' if not show_all else '100'))
+        
+        # Get balance records
+        balances = AccountBalance.objects.all()[:limit]
+        
+        if not balances.exists():
+            return Response(
+                {"error": "No balance records found. Please query balance first."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Format response data
+        balance_data = []
+        for balance in balances:
+            balance_data.append({
+                'conversation_id': balance.conversation_id,
+                'originator_conversation_id': balance.originator_conversation_id,
+                'result_code': balance.result_code,
+                'result_desc': balance.result_desc,
+                'working_account': {
+                    'available': float(balance.working_account_available or 0),
+                    'uncleared': float(balance.working_account_uncleared or 0),
+                    'reserved': float(balance.working_account_reserved or 0),
+                },
+                'charges_paid': {
+                    'available': float(balance.charges_paid_available or 0),
+                    'uncleared': float(balance.charges_paid_uncleared or 0),
+                    'reserved': float(balance.charges_paid_reserved or 0),
+                },
+                'utility_account': {
+                    'available': float(balance.utility_account_available or 0),
+                    'uncleared': float(balance.utility_account_uncleared or 0),
+                    'reserved': float(balance.utility_account_reserved or 0),
+                },
+                'organization_settlement': {
+                    'available': float(balance.organization_settlement_available or 0),
+                },
+                'total_available': float(balance.total_available),
+                'created_at': balance.created_at,
+                'callback_received_at': balance.callback_received_at,
+            })
+        
+        return Response(balance_data, status=status.HTTP_200_OK)
+        
+    except ValueError:
+        return Response(
+            {"error": "Invalid limit parameter. Must be an integer."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        logger.error(f"Error retrieving account balance history: {str(e)}", exc_info=True)
         return Response(
             {"error": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR

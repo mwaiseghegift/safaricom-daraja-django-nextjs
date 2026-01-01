@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import (
     Transaction, STKPushTransaction, B2CTransaction,
-    C2BTransaction, ReversalTransaction, CallbackLog, APIRequestLog
+    C2BTransaction, ReversalTransaction, CallbackLog, APIRequestLog,
+    AccountBalance
 )
 
 
@@ -161,3 +162,59 @@ class APIRequestLogAdmin(admin.ModelAdmin):
             'fields': ('created_at',)
         }),
     )
+
+
+@admin.register(AccountBalance)
+class AccountBalanceAdmin(admin.ModelAdmin):
+    """Admin interface for Account Balance records"""
+    list_display = [
+        'conversation_id_short', 'result_code', 'total_available',
+        'working_account_available', 'utility_account_available',
+        'created_at'
+    ]
+    list_filter = ['result_code', 'created_at']
+    search_fields = ['conversation_id', 'originator_conversation_id']
+    readonly_fields = ['created_at', 'callback_received_at', 'total_available']
+    date_hierarchy = 'created_at'
+    ordering = ['-created_at']
+    
+    fieldsets = (
+        ('Request Information', {
+            'fields': ('conversation_id', 'originator_conversation_id',
+                      'result_code', 'result_desc')
+        }),
+        ('Working Account (MMF)', {
+            'fields': ('working_account_available', 'working_account_uncleared',
+                      'working_account_reserved'),
+            'classes': ('collapse',)
+        }),
+        ('Charges Paid Account', {
+            'fields': ('charges_paid_available', 'charges_paid_uncleared',
+                      'charges_paid_reserved'),
+            'classes': ('collapse',)
+        }),
+        ('Utility Account', {
+            'fields': ('utility_account_available', 'utility_account_uncleared',
+                      'utility_account_reserved'),
+            'classes': ('collapse',)
+        }),
+        ('Organization Settlement', {
+            'fields': ('organization_settlement_available',),
+            'classes': ('collapse',)
+        }),
+        ('Summary', {
+            'fields': ('total_available',)
+        }),
+        ('Raw Data', {
+            'fields': ('raw_result_parameters',),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'callback_received_at')
+        }),
+    )
+    
+    def conversation_id_short(self, obj):
+        """Display shortened conversation ID"""
+        return f"{obj.conversation_id[:30]}..." if len(obj.conversation_id) > 30 else obj.conversation_id
+    conversation_id_short.short_description = 'Conversation ID'

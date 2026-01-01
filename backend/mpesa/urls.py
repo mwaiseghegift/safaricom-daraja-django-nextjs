@@ -91,6 +91,7 @@ urlpatterns = [
     
     # Account operations
     path('mpesa/account-balance/', views.query_account_balance, name='query-account-balance'),
+    path('mpesa/account-balance/history/', views.get_account_balance_history, name='account-balance-history'),
     
     # C2B registration
     path('mpesa/c2b/register/', views.register_c2b, name='register-c2b'),

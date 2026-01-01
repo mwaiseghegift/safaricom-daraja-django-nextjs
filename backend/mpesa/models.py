@@ -337,3 +337,155 @@ class APIRequestLog(models.Model):
     def __str__(self):
         return f"{self.method} {self.endpoint} - {self.status_code}"
 
+
+class AccountBalance(models.Model):
+    """
+    Store account balance query results.
+    Tracks balance history for different M-PESA accounts.
+    """
+    
+    # Request identifiers
+    conversation_id = models.CharField(max_length=100, unique=True, db_index=True)
+    originator_conversation_id = models.CharField(max_length=100, db_index=True)
+    
+    # Result status
+    result_code = models.CharField(max_length=10)
+    result_desc = models.TextField()
+    
+    # Working Account (MMF Account)
+    working_account_available = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Working account available funds"
+    )
+    working_account_uncleared = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Working account uncleared funds"
+    )
+    working_account_reserved = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Working account reserved funds"
+    )
+    
+    # Charges Paid Account
+    charges_paid_available = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Charges paid account available funds"
+    )
+    charges_paid_uncleared = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Charges paid account uncleared funds"
+    )
+    charges_paid_reserved = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Charges paid account reserved funds"
+    )
+    
+    # Utility Account
+    utility_account_available = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Utility account available funds"
+    )
+    utility_account_uncleared = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Utility account uncleared funds"
+    )
+    utility_account_reserved = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Utility account reserved funds"
+    )
+    
+    # Organization Settlement Account (if applicable)
+    organization_settlement_available = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Organization settlement account available funds"
+    )
+    
+    # Raw data for reference
+    raw_result_parameters = models.JSONField(
+        null=True, 
+        blank=True,
+        help_text="Raw result parameters from M-PESA callback"
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    callback_received_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['conversation_id']),
+            models.Index(fields=['result_code', '-created_at']),
+        ]
+        verbose_name = "Account Balance"
+        verbose_name_plural = "Account Balances"
+    
+    def __str__(self):
+        return f"Balance Query - {self.conversation_id[:20]}... ({self.created_at})"
+    
+    @property
+    def total_available(self):
+        """Calculate total available funds across all accounts"""
+        total = 0
+        for field in ['working_account_available', 'charges_paid_available', 
+                      'utility_account_available', 'organization_settlement_available']:
+            value = getattr(self, field)
+            if value is not None:
+                total += value
+        return total
+    
+    def get_balance_summary(self):
+        """Return a formatted summary of all balances"""
+        return {
+            'working_account': {
+                'available': float(self.working_account_available or 0),
+                'uncleared': float(self.working_account_uncleared or 0),
+                'reserved': float(self.working_account_reserved or 0),
+            },
+            'charges_paid': {
+                'available': float(self.charges_paid_available or 0),
+                'uncleared': float(self.charges_paid_uncleared or 0),
+                'reserved': float(self.charges_paid_reserved or 0),
+            },
+            'utility_account': {
+                'available': float(self.utility_account_available or 0),
+                'uncleared': float(self.utility_account_uncleared or 0),
+                'reserved': float(self.utility_account_reserved or 0),
+            },
+            'organization_settlement': {
+                'available': float(self.organization_settlement_available or 0),
+            },
+            'total_available': float(self.total_available)
+        }
+

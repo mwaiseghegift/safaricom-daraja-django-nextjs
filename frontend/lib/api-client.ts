@@ -135,8 +135,16 @@ class ApiClient {
   }
 
   // Account Balance APIs
-  async queryAccountBalance(): Promise<any> {
-    const response = await this.client.post('/api/mpesa/account-balance/');
+  async queryAccountBalance(remarks: string = 'Balance Query'): Promise<any> {
+    const response = await this.client.post('/api/mpesa/account-balance/', { remarks });
+    return response.data;
+  }
+
+  async getAccountBalanceHistory(limit?: number, all?: boolean): Promise<any> {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    if (all) params.append('all', 'true');
+    const response = await this.client.get(`/api/mpesa/account-balance/history/?${params.toString()}`);
     return response.data;
   }
 
